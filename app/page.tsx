@@ -6,11 +6,14 @@ export const metadata: Metadata = {
     "Descubre la colección de velas artesanales de Kadali. Aromas únicos, hechas con amor.",
 };
 
+import Link from "next/link";
+
 export default function HomePage() {
   return (
-    <main>
+    <div>
       <h1>Bienvenida a Kadali</h1>
       <p>Velas artesanales con aromas únicos para cada momento.</p>
-    </main>
+      <Link href="/productos">Ver catálogo</Link>
+    </div>
   );
 }
