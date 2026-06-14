@@ -1,25 +1,86 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ── Escalas Orchid ───────────────────────── */
+  --orchid-700: #7E2E50;
+  --orchid-600: #9E3F66;
+  --orchid-500: #C05680;
+  --orchid-400: #D27E9C;
+  --orchid-300: #E2A6BD;
+
+  /* ── Escalas Petal ────────────────────────── */
+  --petal-500: #E88AA0;
+  --petal-400: #EFA2B4;
+  --petal-300: #F4BBC7;
+  --petal-200: #F9D7DD;
+  --petal-100: #FCEBEE;
+
+  /* ── Escalas Matcha ───────────────────────── */
+  --matcha-600: #6F7B30;
+  --matcha-500: #899A3D;
+  --matcha-400: #AEC050;
+  --matcha-300: #C7D37E;
+  --matcha-200: #DEE7AE;
+
+  /* ── Superficies / Tinta ──────────────────── */
+  --ink-900: #262019;
+  --ink-700: #857E72;
+
+  /* ── Tokens semánticos ────────────────────── */
+  --brand:        var(--orchid-500);
+  --brand-strong: var(--orchid-600);
+  --accent:       var(--matcha-500);
+  --bg:           #F7F3EC;
+  --bg-alt:       #ECE7F1;
+  --surface:      #FFFFFF;
+  --fg:           var(--ink-900);
+  --fg-muted:     var(--ink-700);
+  --line:         #E6DECF;
+  --sienna:       #B5683C;
+  --light:        var(--matcha-200);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-nunito-sans);
+  /* Semánticos */
+  --color-brand:        var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-accent:       var(--accent);
+  --color-bg:           var(--bg);
+  --color-bg-alt:       var(--bg-alt);
+  --color-surface:      var(--surface);
+  --color-fg:           var(--fg);
+  --color-fg-muted:     var(--fg-muted);
+  --color-line:         var(--line);
+  --color-sienna:       var(--sienna);
+  --color-light:        var(--light);
+
+  /* Escalas Orchid */
+  --color-orchid-700: var(--orchid-700);
+  --color-orchid-600: var(--orchid-600);
+  --color-orchid-500: var(--orchid-500);
+  --color-orchid-400: var(--orchid-400);
+  --color-orchid-300: var(--orchid-300);
+
+  /* Escalas Petal */
+  --color-petal-500: var(--petal-500);
+  --color-petal-400: var(--petal-400);
+  --color-petal-300: var(--petal-300);
+  --color-petal-200: var(--petal-200);
+  --color-petal-100: var(--petal-100);
+
+  /* Escalas Matcha */
+  --color-matcha-600: var(--matcha-600);
+  --color-matcha-500: var(--matcha-500);
+  --color-matcha-400: var(--matcha-400);
+  --color-matcha-300: var(--matcha-300);
+  --color-matcha-200: var(--matcha-200);
+
+  /* Tipografía */
+  --font-sans:    var(--font-nunito-sans);
   --font-heading: var(--font-fredoka);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg);
+  color: var(--fg);
 }

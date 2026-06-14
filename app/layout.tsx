@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { nunitoSans, fredoka } from "./ui/fonts";
+import { CartProvider } from "./lib/cart";
+import Nav from "./ui/nav";
 import "./ui/globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +19,12 @@ export default function RootLayout({
       lang="es"
       className={`${nunitoSans.variable} ${fredoka.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">{children}</body>
+      <body className="min-h-full flex flex-col font-sans">
+        <CartProvider>
+          <Nav />
+          <main className="flex-1">{children}</main>
+        </CartProvider>
+      </body>
     </html>
   );
 }
