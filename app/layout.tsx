@@ -22,7 +22,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <CartProvider>
           <Nav />
-          <main>{children}</main>
+          <main className="flex-1">{children}</main>
         </CartProvider>
       </body>
     </html>

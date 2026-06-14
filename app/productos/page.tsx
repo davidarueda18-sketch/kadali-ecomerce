@@ -1,37 +1,65 @@
-import type { Metadata } from "next";
-import Link from "next/link";
-import { getActiveProducts } from "../lib/queries";
-import { cloudinaryUrl } from "../lib/cloudinary";
+import type { Metadata } from 'next'
+import { Suspense } from 'react'
+import { parseFilters } from '../lib/filters'
+import { getCatalogProducts, getCategories } from '../lib/queries'
+import CategoryTabs from '../ui/category-tabs'
+import FiltersSidebar from '../ui/filters-sidebar'
+import ProductGrid from '../ui/product-grid'
+import SearchBox from '../ui/search-box'
+import SortSelect from '../ui/sort-select'
 
 export const metadata: Metadata = {
-  title: "Catálogo de productos | Kadali",
+  title: 'Catálogo | Kadali',
   description:
-    "Explora todos los productos de Kadali: velas artesanales, aromas y colecciones especiales.",
-};
+    'Explora todos los productos de Kadali: velas artesanales, aromas y colecciones especiales.',
+}
 
-export default async function ProductosPage() {
-  const productos = await getActiveProducts();
+type Props = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function ProductosPage({ searchParams }: Props) {
+  const sp = await searchParams
+  const filters = parseFilters(sp)
+
+  const [products, categories] = await Promise.all([
+    getCatalogProducts(filters),
+    getCategories(),
+  ])
 
   return (
-    <div>
-      <h1>Catálogo de productos</h1>
-      <ul>
-        {productos.map((p) => (
-          <li key={p.id} style={{ marginBottom: "16px" }}>
-            <Link href={`/productos/${p.slug}`}>
-              {p.imagePublicId && (
-                <img
-                  src={cloudinaryUrl(p.imagePublicId, 300)}
-                  alt={p.name}
-                  width={150}
-                />
-              )}
-              <div>{p.name}</div>
-            </Link>
-            <div>${Number(p.price).toLocaleString("es-CO")} COP</div>
-          </li>
-        ))}
-      </ul>
+    <div className="px-6 py-8 max-w-7xl mx-auto">
+      {/* Header: tabs + search */}
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
+        <Suspense>
+          <CategoryTabs categories={categories} />
+        </Suspense>
+        <div className="w-full sm:w-64">
+          <Suspense>
+            <SearchBox />
+          </Suspense>
+        </div>
+      </div>
+
+      {/* Main layout: sidebar + grid */}
+      <div className="flex gap-10">
+        <Suspense>
+          <FiltersSidebar categories={categories} />
+        </Suspense>
+
+        {/* Content column */}
+        <div className="flex-1 min-w-0">
+          {/* Toolbar: count + sort */}
+          <div className="flex items-center justify-between mb-6">
+            <p className="text-sm text-fg-muted">{products.length} productos</p>
+            <Suspense>
+              <SortSelect />
+            </Suspense>
+          </div>
+
+          <ProductGrid products={products} />
+        </div>
+      </div>
     </div>
-  );
+  )
 }
