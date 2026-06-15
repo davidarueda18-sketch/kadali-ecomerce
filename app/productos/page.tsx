@@ -1,12 +1,12 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { parseFilters } from '../lib/filters'
-import { getCatalogProducts, getCategories } from '../lib/queries'
-import CategoryTabs from '../ui/category-tabs'
-import FiltersSidebar from '../ui/filters-sidebar'
-import ProductGrid from '../ui/product-grid'
-import SearchBox from '../ui/search-box'
-import SortSelect from '../ui/sort-select'
+import { parseFilters } from '@/lib/catalog/filters'
+import { getCatalogProducts, getCategories } from '@/lib/db/queries'
+import CategoryTabs from '@/ui/catalog/category-tabs'
+import FiltersSidebar from '@/ui/catalog/filters-sidebar'
+import ProductGrid from '@/ui/product/product-grid'
+import SearchBox from '@/ui/catalog/search-box'
+import SortSelect from '@/ui/catalog/sort-select'
 
 export const metadata: Metadata = {
   title: 'Catálogo | Kadali',

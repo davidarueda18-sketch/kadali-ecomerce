@@ -3,7 +3,7 @@ config({ path: '.env.local' })
 
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/neon-http'
-import { categories, products, productImages, orders, orderItems } from '../app/lib/schema'
+import { categories, products, productImages, orders, orderItems } from '../lib/db/schema'
 
 const db = drizzle(process.env.DATABASE_URL!)
 

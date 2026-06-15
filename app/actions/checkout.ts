@@ -1,9 +1,9 @@
 'use server'
 
 import { MercadoPagoConfig, Preference } from 'mercadopago'
-import { db } from '../lib/db'
-import { orders, orderItems } from '../lib/schema'
-import type { CartItem } from '../lib/cart'
+import { db } from '@/lib/db'
+import { orders, orderItems } from '@/lib/db/schema'
+import type { CartItem } from '@/lib/cart'
 
 export type CheckoutForm = {
   customerName: string

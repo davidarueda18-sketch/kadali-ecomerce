@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { cloudinaryUrl } from './lib/cloudinary'
-import { getActiveProducts, getCategories } from './lib/queries'
+import { cloudinaryUrl } from '@/lib/cloudinary'
+import { getActiveProducts, getCategories } from '@/lib/db/queries'
 
 export const metadata: Metadata = {
   title: 'Kadali — Velas artesanales',

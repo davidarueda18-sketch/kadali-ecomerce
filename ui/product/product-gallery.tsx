@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import { useState } from 'react'
-import { cloudinaryUrl } from '../lib/cloudinary'
+import { cloudinaryUrl } from '@/lib/cloudinary'
 
 type GalleryImage = {
   id: number

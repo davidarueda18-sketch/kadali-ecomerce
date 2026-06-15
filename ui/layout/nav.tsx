@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useCart } from '../lib/cart'
+import { useCart } from '@/lib/cart'
 
 export default function Nav() {
   const { getCount } = useCart()

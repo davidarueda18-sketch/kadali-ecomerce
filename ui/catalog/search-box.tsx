@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { PARAM } from '../lib/filters'
+import { PARAM } from '@/lib/catalog/filters'
 import { useFilterParams } from './use-filter-params'
 
 export default function SearchBox() {

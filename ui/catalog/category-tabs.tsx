@@ -1,6 +1,6 @@
 'use client'
 
-import { PARAM } from '../lib/filters'
+import { PARAM } from '@/lib/catalog/filters'
 import { useFilterParams } from './use-filter-params'
 
 type Category = { id: number; name: string; slug: string }

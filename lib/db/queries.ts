@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, gte, ilike, inArray, lte } from 'drizzle-orm'
-import { db } from './db'
+import { db } from '.'
 import { categories, products, productImages } from './schema'
-import type { CatalogFilters } from './filters'
+import type { CatalogFilters } from '../catalog/filters'
 
 // Productos activos con su imagen principal (position = 0)
 export async function getActiveProducts() {

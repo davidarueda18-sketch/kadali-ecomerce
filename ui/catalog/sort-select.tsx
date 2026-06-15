@@ -1,7 +1,7 @@
 'use client'
 
-import type { SortOption } from '../lib/filters'
-import { PARAM } from '../lib/filters'
+import type { SortOption } from '@/lib/catalog/filters'
+import { PARAM } from '@/lib/catalog/filters'
 import { useFilterParams } from './use-filter-params'
 
 const OPTIONS: { value: SortOption; label: string }[] = [

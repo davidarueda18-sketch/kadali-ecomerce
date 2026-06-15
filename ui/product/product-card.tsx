@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { cloudinaryUrl } from '../lib/cloudinary'
+import { cloudinaryUrl } from '@/lib/cloudinary'
 
 type Props = {
   id: number

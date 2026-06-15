@@ -2,8 +2,8 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { cloudinaryUrl } from '../lib/cloudinary'
-import { useCart } from '../lib/cart'
+import { cloudinaryUrl } from '@/lib/cloudinary'
+import { useCart } from '@/lib/cart'
 
 const formatPrice = (n: number) =>
   new Intl.NumberFormat('es-CO', {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react";
-import { useCart } from "../lib/cart";
+import { useCart } from "@/lib/cart";
 import { createOrder, type CheckoutForm } from "../actions/checkout";
 
 export default function CheckoutPage() {

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useCart, type CartItem } from '../lib/cart'
+import { useCart, type CartItem } from '@/lib/cart'
 
 type Props = {
   product: Omit<CartItem, 'quantity'>

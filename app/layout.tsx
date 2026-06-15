@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { nunitoSans, fredoka } from "./ui/fonts";
-import { CartProvider } from "./lib/cart";
-import Nav from "./ui/nav";
-import "./ui/globals.css";
+import { nunitoSans, fredoka } from "@/ui/layout/fonts";
+import { CartProvider } from "@/lib/cart";
+import Nav from "@/ui/layout/nav";
+import "@/ui/layout/globals.css";
 
 export const metadata: Metadata = {
   title: "Kadali E-commerce",

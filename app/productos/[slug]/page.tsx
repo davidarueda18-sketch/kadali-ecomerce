@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { getProductBySlug } from '../../lib/queries'
-import AddToCartButton from '../../ui/add-to-cart-button'
-import ProductGallery from '../../ui/product-gallery'
+import { getProductBySlug } from '@/lib/db/queries'
+import AddToCartButton from '@/ui/product/add-to-cart-button'
+import ProductGallery from '@/ui/product/product-gallery'
 
 type Props = {
   params: Promise<{ slug: string }>
