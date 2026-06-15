@@ -3,7 +3,8 @@
     "allow": [
       "Bash(pnpm dev *)",
       "Bash(pnpm approve-builds *)",
-      "Bash(pnpm install *)"
+      "Bash(pnpm install *)",
+      "PowerShell(npm install lucide-react)"
     ]
   }
 }

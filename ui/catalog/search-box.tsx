@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Search } from 'lucide-react'
 import { PARAM } from '@/lib/catalog/filters'
 import { useFilterParams } from './use-filter-params'
 
@@ -24,7 +25,7 @@ export default function SearchBox() {
 
   return (
     <div className="relative">
-      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-fg-muted text-sm">🔍</span>
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-fg-muted" strokeWidth={1.75} />
       <input
         type="search"
         value={value}
