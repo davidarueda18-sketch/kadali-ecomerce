@@ -3,10 +3,10 @@ import { Suspense } from 'react'
 import { parseFilters } from '@/lib/catalog/filters'
 import { getCatalogProducts, getCategories } from '@/lib/db/queries'
 import CategoryTabs from '@/ui/catalog/category-tabs'
-import FiltersSidebar from '@/ui/catalog/filters-sidebar'
 import ProductGrid from '@/ui/product/product-grid'
 import SearchBox from '@/ui/catalog/search-box'
-import SortSelect from '@/ui/catalog/sort-select'
+import ShowcaseHero from '@/ui/catalog/showcase-hero'
+import NewsletterCard from '@/ui/catalog/newsletter-card'
 
 export const metadata: Metadata = {
   title: 'Catálogo | Kadali',
@@ -27,39 +27,42 @@ export default async function ProductosPage({ searchParams }: Props) {
     getCategories(),
   ])
 
+  const isFiltered = !!filters.q || (filters.categorySlugs?.length ?? 0) > 0
+  const featured = products[0] ?? null
+
   return (
-    <div className="px-6 py-8 max-w-7xl mx-auto">
-      {/* Header: tabs + search */}
-      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
+    <div className="px-6 py-8 max-w-7xl mx-auto space-y-6">
+      {/* Header panel */}
+      <div className="rounded-3xl bg-surface border border-line px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <Suspense>
           <CategoryTabs categories={categories} />
         </Suspense>
-        <div className="w-full sm:w-64">
+        <div className="w-full sm:w-64 shrink-0">
           <Suspense>
             <SearchBox />
           </Suspense>
         </div>
       </div>
 
-      {/* Main layout: sidebar + grid */}
-      <div className="flex gap-10">
-        <Suspense>
-          <FiltersSidebar categories={categories} />
-        </Suspense>
-
-        {/* Content column */}
-        <div className="flex-1 min-w-0">
-          {/* Toolbar: count + sort */}
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-sm text-fg-muted">{products.length} productos</p>
-            <Suspense>
-              <SortSelect />
-            </Suspense>
+      {/* Showcase row: featured product + newsletter */}
+      {!isFiltered && featured && (
+        <div className="grid gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <ShowcaseHero product={featured} />
           </div>
-
-          <ProductGrid products={products} />
+          <NewsletterCard />
         </div>
-      </div>
+      )}
+
+      {/* Catalog */}
+      <section>
+        <h2 className="font-heading text-2xl font-semibold text-fg mb-5">
+          {isFiltered
+            ? `${products.length} resultado${products.length !== 1 ? 's' : ''}`
+            : 'Todos los productos'}
+        </h2>
+        <ProductGrid products={products} />
+      </section>
     </div>
   )
 }
