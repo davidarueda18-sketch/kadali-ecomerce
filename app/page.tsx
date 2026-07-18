@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { cloudinaryUrl } from '@/lib/cloudinary'
+import { formatPrice } from '@/lib/format'
 import { getActiveProducts, getCategories } from '@/lib/db/queries'
 
 export const metadata: Metadata = {
@@ -187,13 +188,7 @@ export default async function HomePage() {
                   <h3 className="text-sm font-semibold text-fg group-hover:text-brand transition-colors mb-0.5">
                     {p.name}
                   </h3>
-                  <p className="text-sm text-fg-muted">
-                    {new Intl.NumberFormat('es-CO', {
-                      style: 'currency',
-                      currency: 'COP',
-                      maximumFractionDigits: 0,
-                    }).format(Number(p.price))}
-                  </p>
+                  <p className="text-sm text-fg-muted">{formatPrice(p.price)}</p>
                 </Link>
               </li>
             ))}

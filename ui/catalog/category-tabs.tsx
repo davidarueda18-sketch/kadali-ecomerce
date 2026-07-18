@@ -1,15 +1,17 @@
 'use client'
 
 import { PARAM } from '@/lib/catalog/filters'
+import CategoryPill from '@/ui/common/category-pill'
 import { useFilterParams } from './use-filter-params'
 
 type Category = { id: number; name: string; slug: string }
 
 type Props = {
   categories: Category[]
+  className?: string
 }
 
-export default function CategoryTabs({ categories }: Props) {
+export default function CategoryTabs({ categories, className = '' }: Props) {
   const { searchParams, setParam } = useFilterParams()
   const selected = searchParams.getAll(PARAM.cat)
   const allActive = selected.length === 0
@@ -26,33 +28,16 @@ export default function CategoryTabs({ categories }: Props) {
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <button
-        onClick={toggleAll}
-        className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-          allActive
-            ? 'bg-brand-strong text-surface'
-            : 'bg-surface border border-line text-fg hover:border-brand'
-        }`}
-      >
-        Todos
-      </button>
-      {categories.map((cat) => {
-        const active = selected.includes(cat.slug)
-        return (
-          <button
-            key={cat.id}
-            onClick={() => toggleCat(cat.slug)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              active
-                ? 'bg-brand-strong text-surface'
-                : 'bg-surface border border-line text-fg hover:border-brand'
-            }`}
-          >
-            {cat.name}
-          </button>
-        )
-      })}
+    <div className={`flex gap-2 overflow-x-auto scrollbar-hidden md:flex-wrap md:justify-end ${className}`}>
+      <CategoryPill label="Todos" active={allActive} onClick={toggleAll} />
+      {categories.map((cat) => (
+        <CategoryPill
+          key={cat.id}
+          label={cat.name}
+          active={selected.includes(cat.slug)}
+          onClick={() => toggleCat(cat.slug)}
+        />
+      ))}
     </div>
   )
 }

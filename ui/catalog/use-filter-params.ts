@@ -8,17 +8,20 @@ export function useFilterParams() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
-  const setParam = useCallback(
-    (key: string, value: string | string[] | null) => {
+  // Aplica varias claves en una sola escritura (evita que dos setParam
+  // seguidos se pisen al reconstruirse desde un searchParams obsoleto).
+  const setParams = useCallback(
+    (entries: Record<string, string | string[] | null>) => {
       const params = new URLSearchParams(searchParams.toString())
 
-      params.delete(key)
-
-      if (value !== null) {
-        if (Array.isArray(value)) {
-          value.forEach((v) => params.append(key, v))
-        } else {
-          params.set(key, value)
+      for (const [key, value] of Object.entries(entries)) {
+        params.delete(key)
+        if (value !== null) {
+          if (Array.isArray(value)) {
+            value.forEach((v) => params.append(key, v))
+          } else {
+            params.set(key, value)
+          }
         }
       }
 
@@ -27,5 +30,12 @@ export function useFilterParams() {
     [router, pathname, searchParams]
   )
 
-  return { searchParams, setParam }
+  const setParam = useCallback(
+    (key: string, value: string | string[] | null) => {
+      setParams({ [key]: value })
+    },
+    [setParams]
+  )
+
+  return { searchParams, setParam, setParams }
 }

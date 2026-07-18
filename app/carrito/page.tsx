@@ -3,14 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { cloudinaryUrl } from '@/lib/cloudinary'
+import { formatPrice } from '@/lib/format'
 import { useCart } from '@/lib/cart'
-
-const formatPrice = (n: number) =>
-  new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(n)
 
 export default function CarritoPage() {
   const { items, updateQuantity, removeItem, getTotal } = useCart()

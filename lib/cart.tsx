@@ -34,6 +34,8 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY)
     if (stored) {
       try {
+        // Hidratación única desde localStorage (sistema externo) al montar
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setItems(JSON.parse(stored))
       } catch {
         // ignorar JSON corrupto

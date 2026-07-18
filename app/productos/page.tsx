@@ -1,12 +1,15 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { parseFilters } from '@/lib/catalog/filters'
-import { getCatalogProducts, getCategories } from '@/lib/db/queries'
-import CategoryTabs from '@/ui/catalog/category-tabs'
+import {
+  getActiveProducts,
+  getCatalogProducts,
+  getCategories,
+  getFragrances,
+} from '@/lib/db/queries'
+import FilterRow from '@/ui/catalog/filter-row'
+import ShowcaseGrid from '@/ui/catalog/showcase-grid'
 import ProductGrid from '@/ui/product/product-grid'
-import SearchBox from '@/ui/catalog/search-box'
-import ShowcaseHero from '@/ui/catalog/showcase-hero'
-import NewsletterCard from '@/ui/catalog/newsletter-card'
 
 export const metadata: Metadata = {
   title: 'Catálogo | Kadali',
@@ -22,41 +25,49 @@ export default async function ProductosPage({ searchParams }: Props) {
   const sp = await searchParams
   const filters = parseFilters(sp)
 
-  const [products, categories] = await Promise.all([
+  const [products, categories, fragrances, featured] = await Promise.all([
     getCatalogProducts(filters),
     getCategories(),
+    getFragrances(),
+    getActiveProducts(),
   ])
 
-  const isFiltered = !!filters.q || (filters.categorySlugs?.length ?? 0) > 0
-  const featured = products[0] ?? null
+  const isFiltered =
+    !!filters.q ||
+    (filters.categorySlugs?.length ?? 0) > 0 ||
+    (filters.fragranceSlugs?.length ?? 0) > 0 ||
+    filters.minPrice !== undefined ||
+    filters.maxPrice !== undefined
+
+  const showShowcase = !isFiltered && featured.length > 0
 
   return (
-    <div className="px-6 py-8 max-w-7xl mx-auto space-y-6">
-      {/* Header panel */}
-      <div className="rounded-3xl bg-surface border border-line px-6 py-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mx-auto max-w-7xl space-y-6 px-6 py-8">
+      {/* Filtros + showcase van en su propio contenedor con el min-h de "una pantalla":
+          si esa altura mínima se pusiera en el <div> de más afuera (junto con el catálogo,
+          que siempre es mucho más alto que una pantalla), el catálogo por sí solo ya supera
+          ese mínimo y no queda espacio "extra" para que el showcase pueda crecer con flex-1.
+          7.5rem = nav (5rem/80px) + el padding superior de este contenedor (py-8/2rem/32px) +
+          un pequeño margen de seguridad contra redondeo del navegador. */}
+      <div
+        className={
+          showShowcase ? 'flex flex-col gap-6 lg:min-h-[max(560px,calc(100dvh-7.5rem))]' : undefined
+        }
+      >
+        {/* Fila de filtros */}
         <Suspense>
-          <CategoryTabs categories={categories} />
+          <FilterRow categories={categories} fragrances={fragrances} />
         </Suspense>
-        <div className="w-full sm:w-64 shrink-0">
-          <Suspense>
-            <SearchBox />
-          </Suspense>
-        </div>
+
+        {/* Showcase: bento grid (slider + banner + tarjetas + tiles, solo sin filtros).
+            Crece (flex-1) para ocupar lo que sobre del alto reservado arriba, así se adapta
+            a la altura real de la fila de filtros en vez de asumir un valor fijo. */}
+        {showShowcase && <ShowcaseGrid products={featured} />}
       </div>
 
-      {/* Showcase row: featured product + newsletter */}
-      {!isFiltered && featured && (
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <ShowcaseHero product={featured} />
-          </div>
-          <NewsletterCard />
-        </div>
-      )}
-
-      {/* Catalog */}
+      {/* Catálogo */}
       <section>
-        <h2 className="font-heading text-2xl font-semibold text-fg mb-5">
+        <h2 className="mb-5 font-heading text-2xl font-semibold text-fg">
           {isFiltered
             ? `${products.length} resultado${products.length !== 1 ? 's' : ''}`
             : 'Todos los productos'}

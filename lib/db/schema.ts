@@ -35,6 +35,24 @@ export const products = pgTable('products', {
   createdAt: timestamp().defaultNow().notNull(),
 })
 
+// Ficha técnica 1:1 de cada vela (fragancia filtrable + especificaciones)
+export const productDetails = pgTable('product_details', {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  productId: integer()
+    .notNull()
+    .unique()
+    .references(() => products.id, { onDelete: 'cascade' }),
+  fragrance: varchar({ length: 100 }).notNull(),
+  fragranceSlug: varchar({ length: 100 }).notNull(),
+  weightGrams: integer().notNull(),
+  burnTimeHours: integer().notNull(),
+  waxType: varchar({ length: 100 }),
+  wickType: varchar({ length: 100 }),
+  heightCm: numeric({ precision: 5, scale: 2 }),
+  diameterCm: numeric({ precision: 5, scale: 2 }),
+  careInstructions: text(),
+})
+
 export const productImages = pgTable(
   'product_images',
   {

@@ -2,6 +2,7 @@
 
 :root {
   /* ── Escalas Orchid ───────────────────────── */
+  --orchid-900: #4A2B3F;
   --orchid-700: #7E2E50;
   --orchid-600: #9E3F66;
   --orchid-500: #C05680;
@@ -29,6 +30,7 @@
   /* ── Tokens semánticos ────────────────────── */
   --brand:        var(--orchid-500);
   --brand-strong: var(--orchid-600);
+  --brand-deep:   var(--orchid-900);
   --accent:       var(--matcha-500);
   --bg:           #F7F3EC;
   --bg-alt:       #ECE7F1;
@@ -44,6 +46,7 @@
   /* Semánticos */
   --color-brand:        var(--brand);
   --color-brand-strong: var(--brand-strong);
+  --color-brand-deep:   var(--brand-deep);
   --color-accent:       var(--accent);
   --color-bg:           var(--bg);
   --color-bg-alt:       var(--bg-alt);
@@ -55,6 +58,7 @@
   --color-light:        var(--light);
 
   /* Escalas Orchid */
+  --color-orchid-900: var(--orchid-900);
   --color-orchid-700: var(--orchid-700);
   --color-orchid-600: var(--orchid-600);
   --color-orchid-500: var(--orchid-500);
@@ -83,4 +87,48 @@
 body {
   background: var(--bg);
   color: var(--fg);
+}
+
+/* Oculta la barra de scroll manteniendo el desplazamiento (pills, tracks) */
+@utility scrollbar-hidden {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Slider de rango: dos <input type="range"> se superponen sobre un mismo track.
+ * El input no captura el puntero (deja pasar el click al track visual); solo los
+ * thumbs son interactivos, así ambos pulgares se pueden arrastrar por separado.
+ */
+.range-input {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.range-input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: auto;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--brand);
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+}
+
+.range-input::-moz-range-thumb {
+  pointer-events: auto;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: var(--brand);
+  border: 2px solid var(--surface);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+  cursor: pointer;
 }

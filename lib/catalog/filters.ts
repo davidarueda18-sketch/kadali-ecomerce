@@ -2,6 +2,7 @@ export type SortOption = 'new' | 'price-asc' | 'price-desc'
 
 export type CatalogFilters = {
   categorySlugs?: string[]
+  fragranceSlugs?: string[]
   minPrice?: number
   maxPrice?: number
   sort?: SortOption
@@ -10,6 +11,7 @@ export type CatalogFilters = {
 
 export const PARAM = {
   cat: 'cat',
+  frag: 'frag',
   sort: 'sort',
   min: 'min',
   max: 'max',
@@ -28,6 +30,13 @@ export function parseFilters(
       : [catRaw]
     : undefined
 
+  const fragRaw = searchParams[PARAM.frag]
+  const fragranceSlugs = fragRaw
+    ? Array.isArray(fragRaw)
+      ? fragRaw
+      : [fragRaw]
+    : undefined
+
   const sortRaw = searchParams[PARAM.sort]
   const sort =
     typeof sortRaw === 'string' && VALID_SORTS.includes(sortRaw as SortOption)
@@ -43,5 +52,5 @@ export function parseFilters(
   const qRaw = searchParams[PARAM.q]
   const q = typeof qRaw === 'string' && qRaw.trim() ? qRaw.trim() : undefined
 
-  return { categorySlugs, sort, minPrice, maxPrice, q }
+  return { categorySlugs, fragranceSlugs, sort, minPrice, maxPrice, q }
 }

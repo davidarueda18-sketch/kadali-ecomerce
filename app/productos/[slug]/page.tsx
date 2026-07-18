@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getProductBySlug } from '@/lib/db/queries'
+import { formatPrice } from '@/lib/format'
 import AddToCartButton from '@/ui/product/add-to-cart-button'
 import ProductGallery from '@/ui/product/product-gallery'
 
@@ -18,13 +19,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: producto.description ?? `Conoce ${producto.name} en Kadali.`,
   }
 }
-
-const formatPrice = (price: string) =>
-  new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(Number(price))
 
 export default async function ProductoDetallePage({ params }: Props) {
   const { slug } = await params

@@ -7,6 +7,7 @@ import {
   categories,
   imageCategories,
   products,
+  productDetails,
   productImages,
   orders,
   orderItems,
@@ -19,7 +20,7 @@ async function seed() {
 
   // Clean tables (FK-safe order) and restart identities
   await db.execute(
-    sql`TRUNCATE TABLE ${orderItems}, ${orders}, ${productImages}, ${products}, ${imageCategories}, ${categories} RESTART IDENTITY CASCADE`
+    sql`TRUNCATE TABLE ${orderItems}, ${orders}, ${productDetails}, ${productImages}, ${products}, ${imageCategories}, ${categories} RESTART IDENTITY CASCADE`
   )
   console.log('✓ Tables truncated')
 
@@ -39,6 +40,8 @@ async function seed() {
     .values([
       { name: 'Hero', slug: 'hero', sortOrder: 0 },
       { name: 'Variante', slug: 'variant', sortOrder: 1 },
+      { name: 'Fondo', slug: 'background', sortOrder: 2 },
+      { name: 'Sin fondo', slug: 'no-background', sortOrder: 3 },
     ])
     .returning()
 
@@ -46,6 +49,8 @@ async function seed() {
 
   const hero = insertedImageCategories.find((c) => c.slug === 'hero')!
   const variant = insertedImageCategories.find((c) => c.slug === 'variant')!
+  const background = insertedImageCategories.find((c) => c.slug === 'background')!
+  const noBackground = insertedImageCategories.find((c) => c.slug === 'no-background')!
 
   // Products — línea de velas de postres, presentación 450 g, 95.000 COP
   const insertedProducts = await db
@@ -106,10 +111,37 @@ async function seed() {
 
   console.log(`✓ ${insertedProducts.length} products inserted`)
 
-  const [limalaya, , , , meraMora] = insertedProducts
+  // Ficha técnica por vela — fragancia (filtrable) + especificaciones comunes
+  const fragranceBySlug: Record<string, { fragrance: string; fragranceSlug: string }> = {
+    limalaya: { fragrance: 'Lima-limón', fragranceSlug: 'lima-limon' },
+    'vida-fresastica': { fragrance: 'Fresa fresca', fragranceSlug: 'fresa-fresca' },
+    'dulce-delito': { fragrance: 'Chocolate', fragranceSlug: 'chocolate' },
+    'sand-ia': { fragrance: 'Sandía', fragranceSlug: 'sandia' },
+    'mera-mora': { fragrance: 'Mora', fragranceSlug: 'mora' },
+  }
 
-  // Product images — solo Limalaya y Mera Mora tienen imágenes reales.
-  // Los demás productos no tienen filas → usan el placeholder en render.
+  await db.insert(productDetails).values(
+    insertedProducts.map((p) => ({
+      productId: p.id,
+      fragrance: fragranceBySlug[p.slug].fragrance,
+      fragranceSlug: fragranceBySlug[p.slug].fragranceSlug,
+      weightGrams: 450,
+      burnTimeHours: 84,
+      waxType: 'Cera de soya',
+      wickType: 'Algodón',
+      heightCm: '9.00',
+      diameterCm: '8.50',
+      careInstructions:
+        'Recorta la mecha a 5 mm antes de cada uso. En el primer encendido deja que la cera se derrita hasta los bordes. No dejes la vela encendida sin supervisión.',
+    }))
+  )
+
+  console.log(`✓ ${insertedProducts.length} product details inserted`)
+
+  const [limalaya, vidaFresastica, , , meraMora] = insertedProducts
+
+  // Product images — solo Limalaya y Mera Mora tienen imágenes hero/variante reales.
+  // Los demás productos no tienen filas de hero/variant → usan el placeholder en render.
   await db.insert(productImages).values([
     // Limalaya (lima)
     {
@@ -141,6 +173,19 @@ async function seed() {
       productId: meraMora.id,
       imageCategoryId: variant.id,
       cloudinaryPublicId: 'mora-boom_szllu8',
+      position: 0,
+    },
+    // Vida fresástica (fresa) — background + recorte sin fondo para el FeaturedSlider
+    {
+      productId: vidaFresastica.id,
+      imageCategoryId: background.id,
+      cloudinaryPublicId: 'Fresa-bg_btfwhh',
+      position: 0,
+    },
+    {
+      productId: vidaFresastica.id,
+      imageCategoryId: noBackground.id,
+      cloudinaryPublicId: 'fresa-rm-bg_bmludw',
       position: 0,
     },
   ])

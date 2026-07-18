@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { cloudinaryUrl } from '@/lib/cloudinary'
+import { formatPrice } from '@/lib/format'
 import RatingBadge from './rating-badge'
 
 type Props = {
@@ -11,13 +12,6 @@ type Props = {
   description: string | null
   imagePublicId: string | null
 }
-
-const formatPrice = (price: string) =>
-  new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(Number(price))
 
 export default function ProductCard({ id, name, slug, price, description, imagePublicId }: Props) {
   return (
