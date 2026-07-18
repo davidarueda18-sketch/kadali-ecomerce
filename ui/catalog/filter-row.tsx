@@ -30,8 +30,14 @@ export default function FilterRow({ categories, fragrances }: Props) {
       />
 
       {/* Se abre de izquierda a derecha en la misma línea (igual que el buscador móvil).
-          max-h se limita al cerrar porque min-w-70/md:min-w-130 en FiltersBar fuerza su
-          ancho interno incluso con max-width:0 en el padre, lo que inflaría el alto de la fila. */}
+          FiltersBar usa min-w-max (no un valor fijo) para que su ancho nunca baje del
+          contenido natural: así, mientras este max-width animado sea menor, FiltersBar se
+          mantiene a tamaño completo y solo se revela/recorta (sin comprimir el texto de
+          precio); si usara un mínimo fijo menor al contenido real, habría un tramo de la
+          animación donde el ancho ofrecido cae entre ese mínimo y el ancho real, forzando
+          al texto a encogerse y saltar. max-h se limita al cerrar porque min-w-max en
+          FiltersBar fuerza su ancho interno incluso con max-width:0 en el padre, lo que
+          inflaría el alto de la fila. */}
       <div
         aria-hidden={!open}
         className={`overflow-hidden transition-[max-width,max-height,opacity] duration-300 ease-out ${

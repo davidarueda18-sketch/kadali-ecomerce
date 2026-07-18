@@ -26,7 +26,7 @@ export default function FiltersBar({ fragrances, onClose, className = '' }: Prop
 
   return (
     <div
-      className={`flex min-w-70 flex-col gap-4 rounded-3xl bg-surface px-4 py-4 shadow-sm md:min-w-130 md:flex-row md:items-center md:gap-5 md:rounded-full md:px-3 md:py-2.5 ${className}`}
+      className={`flex min-w-max flex-col gap-4 rounded-3xl bg-surface px-4 py-4 shadow-sm md:flex-row md:items-center md:gap-5 md:rounded-full md:px-3 md:py-2.5 ${className}`}
     >
       <IconButton
         icon={X}
