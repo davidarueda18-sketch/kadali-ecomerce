@@ -54,17 +54,13 @@ export default function CarritoPage() {
               {/* Imagen */}
               <Link href={`/productos/${item.slug}`} className="shrink-0">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-bg-alt">
-                  {item.imagePublicId ? (
-                    <Image
-                      src={cloudinaryUrl(item.imagePublicId, 200)}
-                      alt={item.name}
-                      fill
-                      sizes="80px"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-bg-alt" />
-                  )}
+                  <Image
+                    src={cloudinaryUrl(item.imagePublicId, 200)}
+                    alt={item.name}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
                 </div>
               </Link>
 

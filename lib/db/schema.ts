@@ -5,6 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
+  unique,
   varchar,
 } from 'drizzle-orm/pg-core'
 
@@ -12,6 +13,14 @@ export const categories = pgTable('categories', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 100 }).notNull(),
   slug: varchar({ length: 100 }).notNull().unique(),
+})
+
+// Categorías de imagen (hero, variante, …) — extensible
+export const imageCategories = pgTable('image_categories', {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar({ length: 100 }).notNull(),
+  slug: varchar({ length: 100 }).notNull().unique(),
+  sortOrder: integer().notNull().default(0),
 })
 
 export const products = pgTable('products', {
@@ -26,14 +35,21 @@ export const products = pgTable('products', {
   createdAt: timestamp().defaultNow().notNull(),
 })
 
-export const productImages = pgTable('product_images', {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  productId: integer()
-    .notNull()
-    .references(() => products.id, { onDelete: 'cascade' }),
-  cloudinaryPublicId: varchar({ length: 500 }).notNull(),
-  position: integer().notNull().default(0),
-})
+export const productImages = pgTable(
+  'product_images',
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    productId: integer()
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    imageCategoryId: integer()
+      .notNull()
+      .references(() => imageCategories.id),
+    cloudinaryPublicId: varchar({ length: 500 }).notNull(),
+    position: integer().notNull().default(0),
+  },
+  (t) => [unique().on(t.productId, t.imageCategoryId, t.position)]
+)
 
 export const orders = pgTable('orders', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

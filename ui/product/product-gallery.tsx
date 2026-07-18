@@ -21,20 +21,16 @@ export default function ProductGallery({ images, productName }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Imagen principal */}
+      {/* Imagen principal (placeholder si el producto no tiene imágenes) */}
       <div className="relative aspect-square rounded-2xl overflow-hidden bg-bg-alt">
-        {main ? (
-          <Image
-            src={cloudinaryUrl(main.cloudinaryPublicId, 800)}
-            alt={productName}
-            fill
-            sizes="(max-width: 768px) 100vw, 50vw"
-            className="object-cover"
-            priority
-          />
-        ) : (
-          <div className="w-full h-full bg-bg-alt" />
-        )}
+        <Image
+          src={cloudinaryUrl(main?.cloudinaryPublicId, 800)}
+          alt={productName}
+          fill
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="object-cover"
+          priority
+        />
       </div>
 
       {/* Thumbnails */}

@@ -171,17 +171,13 @@ export default async function HomePage() {
                       i === 0 ? 'aspect-[16/9] lg:aspect-[4/5]' : 'aspect-[4/5]'
                     }`}
                   >
-                    {p.imagePublicId ? (
-                      <Image
-                        src={cloudinaryUrl(p.imagePublicId, 700)}
-                        alt={p.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-bg-alt" />
-                    )}
+                    <Image
+                      src={cloudinaryUrl(p.imagePublicId, 700)}
+                      alt={p.name}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                     {i === 0 && (
                       <span className="absolute top-4 left-4 bg-brand-strong text-surface text-xs font-semibold px-3 py-1 rounded-full">
                         Más vendido
@@ -228,12 +224,9 @@ export default async function HomePage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {categories.map((cat, i) => {
-              const catProduct = products.find(
-                (p) => p.imagePublicId
-              )
-              const img = products
-                .filter((p) => p.imagePublicId)
-                [i % products.filter((p) => p.imagePublicId).length]
+              const withImages = products.filter((p) => p.imagePublicId)
+              const img =
+                withImages.length > 0 ? withImages[i % withImages.length] : undefined
 
               return (
                 <Link
@@ -241,15 +234,13 @@ export default async function HomePage() {
                   href={`/productos?cat=${cat.slug}`}
                   className="group relative h-64 rounded-2xl overflow-hidden flex items-end p-6 bg-bg-alt"
                 >
-                  {img?.imagePublicId && (
-                    <Image
-                      src={cloudinaryUrl(img.imagePublicId, 700)}
-                      alt={cat.name}
-                      fill
-                      sizes="(max-width: 640px) 100vw, 50vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  )}
+                  <Image
+                    src={cloudinaryUrl(img?.imagePublicId, 700)}
+                    alt={cat.name}
+                    fill
+                    sizes="(max-width: 640px) 100vw, 50vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                   {/* Gradient overlay */}
                   <div className="absolute inset-0 bg-gradient-to-t from-fg/70 via-transparent to-transparent" />
                   <div className="relative z-10">

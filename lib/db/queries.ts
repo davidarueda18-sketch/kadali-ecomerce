@@ -1,9 +1,15 @@
 import { and, asc, desc, eq, gte, ilike, inArray, lte } from 'drizzle-orm'
 import { db } from '.'
-import { categories, products, productImages } from './schema'
+import { categories, imageCategories, products, productImages } from './schema'
 import type { CatalogFilters } from '../catalog/filters'
 
-// Productos activos con su imagen principal (position = 0)
+// Subconsulta: ids de la categoría de imagen "hero"
+const heroCategoryIds = db
+  .select({ id: imageCategories.id })
+  .from(imageCategories)
+  .where(eq(imageCategories.slug, 'hero'))
+
+// Productos activos con su imagen principal (hero, position = 0)
 export async function getActiveProducts() {
   const rows = await db
     .select({
@@ -16,7 +22,11 @@ export async function getActiveProducts() {
     .from(products)
     .leftJoin(
       productImages,
-      and(eq(productImages.productId, products.id), eq(productImages.position, 0))
+      and(
+        eq(productImages.productId, products.id),
+        inArray(productImages.imageCategoryId, heroCategoryIds),
+        eq(productImages.position, 0)
+      )
     )
     .where(eq(products.active, true))
     .orderBy(asc(products.id))
@@ -79,13 +89,17 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
     .from(products)
     .leftJoin(
       productImages,
-      and(eq(productImages.productId, products.id), eq(productImages.position, 0))
+      and(
+        eq(productImages.productId, products.id),
+        inArray(productImages.imageCategoryId, heroCategoryIds),
+        eq(productImages.position, 0)
+      )
     )
     .where(and(...conditions))
     .orderBy(orderBy)
 }
 
-// Producto por slug con todas sus imágenes ordenadas
+// Producto por slug con todas sus imágenes (heros primero, luego variantes)
 export async function getProductBySlug(slug: string) {
   const [product] = await db
     .select()
@@ -96,10 +110,16 @@ export async function getProductBySlug(slug: string) {
   if (!product) return null
 
   const images = await db
-    .select()
+    .select({
+      id: productImages.id,
+      cloudinaryPublicId: productImages.cloudinaryPublicId,
+      position: productImages.position,
+      categorySlug: imageCategories.slug,
+    })
     .from(productImages)
+    .innerJoin(imageCategories, eq(imageCategories.id, productImages.imageCategoryId))
     .where(eq(productImages.productId, product.id))
-    .orderBy(asc(productImages.position))
+    .orderBy(asc(imageCategories.sortOrder), asc(productImages.position))
 
   return { ...product, images }
 }

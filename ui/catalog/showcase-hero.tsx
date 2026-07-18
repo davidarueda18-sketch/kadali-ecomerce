@@ -23,18 +23,14 @@ const formatPrice = (price: string) =>
 export default function ShowcaseHero({ product }: { product: Product }) {
   return (
     <div className="relative rounded-3xl overflow-hidden bg-bg-alt min-h-[320px] lg:min-h-[420px]">
-      {product.imagePublicId ? (
-        <Image
-          src={cloudinaryUrl(product.imagePublicId, 900)}
-          alt={product.name}
-          fill
-          sizes="(max-width: 1024px) 100vw, 66vw"
-          className="object-cover"
-          priority
-        />
-      ) : (
-        <div className="w-full h-full bg-bg-alt" />
-      )}
+      <Image
+        src={cloudinaryUrl(product.imagePublicId, 900)}
+        alt={product.name}
+        fill
+        sizes="(max-width: 1024px) 100vw, 66vw"
+        className="object-cover"
+        priority
+      />
 
       {/* Gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />

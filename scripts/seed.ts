@@ -3,7 +3,14 @@ config({ path: '.env.local' })
 
 import { sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/neon-http'
-import { categories, products, productImages, orders, orderItems } from '../lib/db/schema'
+import {
+  categories,
+  imageCategories,
+  products,
+  productImages,
+  orders,
+  orderItems,
+} from '../lib/db/schema'
 
 const db = drizzle(process.env.DATABASE_URL!)
 
@@ -12,65 +19,86 @@ async function seed() {
 
   // Clean tables (FK-safe order) and restart identities
   await db.execute(
-    sql`TRUNCATE TABLE ${orderItems}, ${orders}, ${productImages}, ${products}, ${categories} RESTART IDENTITY CASCADE`
+    sql`TRUNCATE TABLE ${orderItems}, ${orders}, ${productImages}, ${products}, ${imageCategories}, ${categories} RESTART IDENTITY CASCADE`
   )
   console.log('✓ Tables truncated')
 
-  // Categories
+  // Categoría de producto — línea de velas de postres
   const insertedCategories = await db
     .insert(categories)
-    .values([
-      { name: 'Aromáticas', slug: 'aromaticas' },
-      { name: 'Decorativas', slug: 'decorativas' },
-    ])
+    .values([{ name: 'Velas de Postres', slug: 'velas-postres' }])
     .returning()
 
   console.log(`✓ ${insertedCategories.length} categories inserted`)
 
-  const [aromaticas, decorativas] = insertedCategories
+  const [postres] = insertedCategories
 
-  // Products — precios bajos (COP) para entrar en el saldo de prueba de 50.000
+  // Categorías de imagen (extensible: más pueden añadirse después)
+  const insertedImageCategories = await db
+    .insert(imageCategories)
+    .values([
+      { name: 'Hero', slug: 'hero', sortOrder: 0 },
+      { name: 'Variante', slug: 'variant', sortOrder: 1 },
+    ])
+    .returning()
+
+  console.log(`✓ ${insertedImageCategories.length} image categories inserted`)
+
+  const hero = insertedImageCategories.find((c) => c.slug === 'hero')!
+  const variant = insertedImageCategories.find((c) => c.slug === 'variant')!
+
+  // Products — línea de velas de postres, presentación 450 g, 95.000 COP
   const insertedProducts = await db
     .insert(products)
     .values([
       {
-        name: 'Vela Aromática Vainilla',
-        slug: 'vela-aromatica-vainilla',
+        name: 'Limalaya',
+        slug: 'limalaya',
         description:
-          'Vela de cera de soya con esencia de vainilla. Aroma cálido y envolvente, ideal para crear un ambiente acogedor. Duración aproximada de 40 horas.',
-        price: '12000',
-        stock: 30,
-        categoryId: aromaticas.id,
+          'Vela de lima con fragancia lima-limón. Aroma cítrico y refrescante. Presentación de 450 g.',
+        price: '95000',
+        stock: 20,
+        categoryId: postres.id,
         active: true,
       },
       {
-        name: 'Vela Aromática Lavanda',
-        slug: 'vela-aromatica-lavanda',
+        name: 'Vida fresástica',
+        slug: 'vida-fresastica',
         description:
-          'Vela artesanal con aceite esencial de lavanda. Perfecta para relajarte y desconectar al final del día. Mecha de algodón sin plomo.',
-        price: '13000',
-        stock: 25,
-        categoryId: aromaticas.id,
+          'Vela de fresa con fragancia fresa fresca. Dulce y afrutada. Presentación de 450 g.',
+        price: '95000',
+        stock: 20,
+        categoryId: postres.id,
         active: true,
       },
       {
-        name: 'Vela de Soya Cítricos',
-        slug: 'vela-de-soya-citricos',
+        name: 'Dulce delito',
+        slug: 'dulce-delito',
         description:
-          'Vela de soya 100% natural con notas cítricas de naranja y limón. Fragancia fresca y energizante para espacios de trabajo.',
-        price: '11000',
-        stock: 40,
-        categoryId: aromaticas.id,
+          'Vela y fragancia de chocolate. Un aroma goloso e irresistible. Presentación de 450 g.',
+        price: '95000',
+        stock: 20,
+        categoryId: postres.id,
         active: true,
       },
       {
-        name: 'Vela Decorativa Canela',
-        slug: 'vela-decorativa-canela',
+        name: 'Sand-ia',
+        slug: 'sand-ia',
         description:
-          'Vela decorativa con aroma a canela y un acabado rústico hecho a mano. Pieza única que combina decoración y fragancia.',
-        price: '15000',
-        stock: 18,
-        categoryId: decorativas.id,
+          'Vela y fragancia de sandía. Fresca y jugosa, ideal para el verano. Presentación de 450 g.',
+        price: '95000',
+        stock: 20,
+        categoryId: postres.id,
+        active: true,
+      },
+      {
+        name: 'Mera Mora',
+        slug: 'mera-mora',
+        description:
+          'Vela y fragancia de mora. Aroma intenso y frutal. Presentación de 450 g.',
+        price: '95000',
+        stock: 20,
+        categoryId: postres.id,
         active: true,
       },
     ])
@@ -78,16 +106,43 @@ async function seed() {
 
   console.log(`✓ ${insertedProducts.length} products inserted`)
 
-  // Product images — 2 por producto (public IDs reales de Cloudinary)
+  const [limalaya, , , , meraMora] = insertedProducts
+
+  // Product images — solo Limalaya y Mera Mora tienen imágenes reales.
+  // Los demás productos no tienen filas → usan el placeholder en render.
   await db.insert(productImages).values([
-    { productId: insertedProducts[0].id, cloudinaryPublicId: '20260614_125916_cpcd1z', position: 0 },
-    { productId: insertedProducts[0].id, cloudinaryPublicId: '20260614_125918_wwx4ly', position: 1 },
-    { productId: insertedProducts[1].id, cloudinaryPublicId: '20260614_125926_ocjelx', position: 0 },
-    { productId: insertedProducts[1].id, cloudinaryPublicId: '20260614_125913_ad3qux', position: 1 },
-    { productId: insertedProducts[2].id, cloudinaryPublicId: '20260614_125924_culxoc', position: 0 },
-    { productId: insertedProducts[2].id, cloudinaryPublicId: '20260614_125930_t461to', position: 1 },
-    { productId: insertedProducts[3].id, cloudinaryPublicId: '20260614_125910_ei8sou', position: 0 },
-    { productId: insertedProducts[3].id, cloudinaryPublicId: '20260614_125927_vmh9ed', position: 1 },
+    // Limalaya (lima)
+    {
+      productId: limalaya.id,
+      imageCategoryId: hero.id,
+      cloudinaryPublicId: 'lima-hero-expanded_bpyvra',
+      position: 0,
+    },
+    {
+      productId: limalaya.id,
+      imageCategoryId: variant.id,
+      cloudinaryPublicId: 'lima-cookies_uqhsow',
+      position: 0,
+    },
+    // Mera Mora (mora)
+    {
+      productId: meraMora.id,
+      imageCategoryId: hero.id,
+      cloudinaryPublicId: 'mora-hero-2_ziuiot',
+      position: 0,
+    },
+    {
+      productId: meraMora.id,
+      imageCategoryId: hero.id,
+      cloudinaryPublicId: 'mora-hero_dt3t4b',
+      position: 1,
+    },
+    {
+      productId: meraMora.id,
+      imageCategoryId: variant.id,
+      cloudinaryPublicId: 'mora-boom_szllu8',
+      position: 0,
+    },
   ])
 
   console.log('✓ Product images inserted')
@@ -105,9 +160,9 @@ async function seed() {
         city: 'Bogotá',
         zipCode: '110231',
         country: 'Colombia',
-        subtotal: '25000',
+        subtotal: '190000',
         shippingCost: '8000',
-        total: '33000',
+        total: '198000',
         status: 'delivered',
       },
     ])
@@ -118,19 +173,19 @@ async function seed() {
   await db.insert(orderItems).values([
     {
       orderId: insertedOrders[0].id,
-      productId: insertedProducts[0].id,
-      productName: insertedProducts[0].name,
-      unitPrice: insertedProducts[0].price,
+      productId: limalaya.id,
+      productName: limalaya.name,
+      unitPrice: limalaya.price,
       quantity: 1,
-      subtotal: '12000',
+      subtotal: '95000',
     },
     {
       orderId: insertedOrders[0].id,
-      productId: insertedProducts[1].id,
-      productName: insertedProducts[1].name,
-      unitPrice: insertedProducts[1].price,
+      productId: meraMora.id,
+      productName: meraMora.name,
+      unitPrice: meraMora.price,
       quantity: 1,
-      subtotal: '13000',
+      subtotal: '95000',
     },
   ])
 

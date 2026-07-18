@@ -23,17 +23,13 @@ export default function ProductCard({ id, name, slug, price, description, imageP
   return (
     <Link href={`/productos/${slug}`} className="group block">
       <div className="relative aspect-4/5 rounded-2xl overflow-hidden bg-bg-alt mb-3">
-        {imagePublicId ? (
-          <Image
-            src={cloudinaryUrl(imagePublicId, 600)}
-            alt={name}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full bg-bg-alt" />
-        )}
+        <Image
+          src={cloudinaryUrl(imagePublicId, 600)}
+          alt={name}
+          fill
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
+        />
 
         {/* Rating badge */}
         <div className="absolute top-2.5 right-2.5">
