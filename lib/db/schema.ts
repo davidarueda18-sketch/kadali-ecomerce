@@ -9,6 +9,59 @@ import {
   varchar,
 } from 'drizzle-orm/pg-core'
 
+// --- Auth (Better Auth) ---------------------------------------------------
+// IDs en `text` (no integer identity) por convención del adaptador de Better Auth.
+
+export const user = pgTable('user', {
+  id: text().primaryKey(),
+  name: text().notNull(),
+  email: text().notNull().unique(),
+  emailVerified: boolean().notNull(),
+  image: text(),
+  createdAt: timestamp().notNull(),
+  updatedAt: timestamp().notNull(),
+})
+
+export const session = pgTable('session', {
+  id: text().primaryKey(),
+  expiresAt: timestamp().notNull(),
+  token: text().notNull().unique(),
+  createdAt: timestamp().notNull(),
+  updatedAt: timestamp().notNull(),
+  ipAddress: text(),
+  userAgent: text(),
+  userId: text()
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+})
+
+export const account = pgTable('account', {
+  id: text().primaryKey(),
+  accountId: text().notNull(),
+  providerId: text().notNull(),
+  userId: text()
+    .notNull()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  accessToken: text(),
+  refreshToken: text(),
+  idToken: text(),
+  accessTokenExpiresAt: timestamp(),
+  refreshTokenExpiresAt: timestamp(),
+  scope: text(),
+  password: text(),
+  createdAt: timestamp().notNull(),
+  updatedAt: timestamp().notNull(),
+})
+
+export const verification = pgTable('verification', {
+  id: text().primaryKey(),
+  identifier: text().notNull(),
+  value: text().notNull(),
+  expiresAt: timestamp().notNull(),
+  createdAt: timestamp(),
+  updatedAt: timestamp(),
+})
+
 export const categories = pgTable('categories', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 100 }).notNull(),
@@ -72,6 +125,8 @@ export const productImages = pgTable(
 export const orders = pgTable('orders', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   orderNumber: varchar({ length: 20 }).notNull().unique(),
+  // Nulo para pedidos de invitado; se vincula al registrarse con el mismo correo (ver lib/auth.ts)
+  userId: text().references(() => user.id),
   customerName: varchar({ length: 255 }).notNull(),
   customerEmail: varchar({ length: 255 }).notNull(),
   customerPhone: varchar({ length: 20 }),

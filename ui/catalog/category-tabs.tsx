@@ -28,7 +28,15 @@ export default function CategoryTabs({ categories, className = '' }: Props) {
   }
 
   return (
-    <div className={`flex gap-2 overflow-x-auto scrollbar-hidden md:flex-wrap md:justify-end ${className}`}>
+    // overflow-x-auto habilita el scroll horizontal de categorías en móvil, pero al
+    // fijar un eje el otro (overflow-y) deja de ser visible y también recorta: eso
+    // cortaba la shadow-sm/hover:shadow-md de los pills arriba/abajo y a la derecha.
+    // p-2.5 le da aire dentro de la zona de recorte; -my/-mr lo compensan para que
+    // los pills queden igual (no compensamos la izquierda para no pisar el ml-auto;
+    // ese padding izquierdo lo absorbe la holgura del ml-auto / el px-6 de la página).
+    <div
+      className={`-my-2.5 -mr-2.5 flex gap-2 overflow-x-auto scrollbar-hidden p-2.5 md:flex-wrap md:justify-end ${className}`}
+    >
       <CategoryPill label="Todos" active={allActive} onClick={toggleAll} />
       {categories.map((cat) => (
         <CategoryPill

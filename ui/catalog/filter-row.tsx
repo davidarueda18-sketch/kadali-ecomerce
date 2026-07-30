@@ -22,7 +22,7 @@ export default function FilterRow({ categories, fragrances }: Props) {
       <IconButton
         icon={SlidersVertical}
         label={open ? 'Ocultar filtros' : 'Mostrar filtros'}
-        variant="plain"
+        variant="raised"
         size="sm"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
@@ -37,10 +37,13 @@ export default function FilterRow({ categories, fragrances }: Props) {
           animación donde el ancho ofrecido cae entre ese mínimo y el ancho real, forzando
           al texto a encogerse y saltar. max-h se limita al cerrar porque min-w-max en
           FiltersBar fuerza su ancho interno incluso con max-width:0 en el padre, lo que
-          inflaría el alto de la fila. */}
+          inflaría el alto de la fila.
+          p-2 -m-2: el overflow-hidden recorta hasta el borde del padding-box, así
+          que este padding le da aire a la shadow-sm de FiltersBar para que no se
+          corte por los 4 lados; el -m-2 lo compensa y deja el layout idéntico. */}
       <div
         aria-hidden={!open}
-        className={`overflow-hidden transition-[max-width,max-height,opacity] duration-300 ease-out ${
+        className={`-m-2 overflow-hidden p-2 transition-[max-width,max-height,opacity] duration-300 ease-out ${
           open ? 'max-w-3xl max-h-96 opacity-100' : 'pointer-events-none max-w-0 max-h-11 opacity-0'
         }`}
       >

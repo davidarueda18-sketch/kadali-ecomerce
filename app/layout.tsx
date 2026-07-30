@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { nunitoSans, fredoka } from "@/ui/layout/fonts";
 import { CartProvider } from "@/lib/cart";
-import Nav from "@/ui/layout/nav";
-import BottomNav from "@/ui/layout/bottom-nav";
+import SiteChrome from "@/ui/layout/site-chrome";
 import "@/ui/layout/globals.css";
 
 export const metadata: Metadata = {
@@ -22,9 +21,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <CartProvider>
-          <Nav />
-          <main className="flex-1 pb-24 md:pb-0">{children}</main>
-          <BottomNav />
+          <SiteChrome>{children}</SiteChrome>
         </CartProvider>
       </body>
     </html>

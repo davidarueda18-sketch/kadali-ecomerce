@@ -4,6 +4,8 @@ import { db } from '.'
 import {
   categories,
   imageCategories,
+  orderItems,
+  orders,
   productDetails,
   products,
   productImages,
@@ -198,4 +200,31 @@ export async function getProductBySlug(slug: string) {
     .orderBy(asc(imageCategories.sortOrder), asc(productImages.position))
 
   return { ...product, images }
+}
+
+// Pedidos de un correo verificado (cubre pedidos hechos como invitado antes de registrarse,
+// además de los ya vinculados por userId)
+export async function getOrdersByEmail(email: string) {
+  const orderRows = await db
+    .select()
+    .from(orders)
+    .where(eq(orders.customerEmail, email))
+    .orderBy(desc(orders.createdAt))
+
+  if (orderRows.length === 0) return []
+
+  const items = await db
+    .select()
+    .from(orderItems)
+    .where(
+      inArray(
+        orderItems.orderId,
+        orderRows.map((o) => o.id)
+      )
+    )
+
+  return orderRows.map((order) => ({
+    ...order,
+    items: items.filter((i) => i.orderId === order.id),
+  }))
 }

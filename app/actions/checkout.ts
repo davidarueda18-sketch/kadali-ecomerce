@@ -1,9 +1,11 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { MercadoPagoConfig, Preference } from 'mercadopago'
 import { db } from '@/lib/db'
 import { orders, orderItems } from '@/lib/db/schema'
 import type { CartItem } from '@/lib/cart'
+import { auth } from '@/lib/auth'
 
 export type CheckoutForm = {
   customerName: string
@@ -26,11 +28,16 @@ export async function createOrder(form: CheckoutForm, items: CartItem[]) {
   // Número de orden con correlativo aleatorio simple
   const orderNumber = `KD-${Date.now().toString().slice(-8)}`
 
+  // Si hay sesión, el pedido queda vinculado al usuario desde ya (si no, queda como invitado y se
+  // recupera después por correo — ver databaseHooks.user.create en lib/auth.ts)
+  const session = await auth.api.getSession({ headers: await headers() })
+
   // 1. Insertar orden
   const [order] = await db
     .insert(orders)
     .values({
       orderNumber,
+      userId: session?.user.id ?? null,
       customerName: form.customerName,
       customerEmail: form.customerEmail,
       customerPhone: form.customerPhone || null,
