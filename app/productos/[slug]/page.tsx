@@ -26,7 +26,7 @@ export default async function ProductoDetallePage({ params }: Props) {
 
   if (!producto) notFound()
 
-  const imagenPrincipal = producto.images[0]?.cloudinaryPublicId ?? null
+  const imagenPrincipal = producto.heroImage?.cloudinaryPublicId ?? null
   const stockBajo = producto.stock > 0 && producto.stock <= 5
 
   return (
@@ -47,7 +47,11 @@ export default async function ProductoDetallePage({ params }: Props) {
       {/* Layout 2 columnas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
         {/* Columna izquierda: galería */}
-        <ProductGallery images={producto.images} productName={producto.name} />
+        <ProductGallery
+          heroImage={producto.heroImage}
+          variantImages={producto.variantImages}
+          productName={producto.name}
+        />
 
         {/* Columna derecha: info */}
         <div className="flex flex-col gap-6">

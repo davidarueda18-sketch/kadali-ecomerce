@@ -45,11 +45,11 @@ export default function FeaturedProductCard({ product }: Props) {
         <p className="text-sm text-fg-muted">{product.name}</p>
         <div className="relative mt-4 h-48 md:h-56 lg:h-64">
           <Image
-            src={cloudinaryUrl(product.noBgPublicId, 500)}
+            src={cloudinaryUrl(product.imagePublicId, 500)}
             alt={product.name}
             fill
             sizes="(max-width: 768px) 288px, (max-width: 1024px) 320px, 352px"
-            className="object-contain"
+            className="rounded-2xl object-cover"
           />
         </div>
       </Link>

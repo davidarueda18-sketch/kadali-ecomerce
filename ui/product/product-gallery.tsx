@@ -10,12 +10,14 @@ type GalleryImage = {
 }
 
 type Props = {
-  images: GalleryImage[]
+  heroImage: GalleryImage | null
+  variantImages: GalleryImage[]
   productName: string
 }
 
-export default function ProductGallery({ images, productName }: Props) {
+export default function ProductGallery({ heroImage, variantImages, productName }: Props) {
   const [active, setActive] = useState(0)
+  const images = heroImage ? [heroImage, ...variantImages] : variantImages
 
   const main = images[active]
 
@@ -39,7 +41,10 @@ export default function ProductGallery({ images, productName }: Props) {
           {images.map((img, i) => (
             <button
               key={img.id}
+              type="button"
               onClick={() => setActive(i)}
+              aria-label={`Mostrar imagen ${i + 1} de ${productName}`}
+              aria-pressed={i === active}
               className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors shrink-0 ${
                 i === active ? 'border-brand' : 'border-transparent hover:border-line'
               }`}

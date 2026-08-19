@@ -1,0 +1,132 @@
+.page {
+  overflow: clip;
+  background: #fbf6ee;
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 18%, rgb(249 215 221 / 72%), transparent 31rem),
+    radial-gradient(circle at 88% 82%, rgb(222 231 174 / 58%), transparent 28rem),
+    #f5ecdf;
+}
+
+.hero::before {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgb(68 42 54 / 3%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(68 42 54 / 3%) 1px, transparent 1px);
+  background-size: 52px 52px;
+  content: '';
+  mask-image: linear-gradient(to bottom, black, transparent 88%);
+}
+
+.heroHalo {
+  position: absolute;
+  top: 8%;
+  right: -12%;
+  width: min(62vw, 54rem);
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 5rem rgb(255 255 255 / 12%),
+    0 0 0 10rem rgb(255 255 255 / 7%);
+  pointer-events: none;
+}
+
+.heroPrimary {
+  animation: hero-arrive 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.heroThumb {
+  animation: thumb-arrive 650ms cubic-bezier(0.16, 1, 0.3, 1) 150ms both;
+}
+
+.productCard {
+  box-shadow: 0 12px 36px rgb(73 47 37 / 8%);
+  transition:
+    transform 350ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 350ms ease;
+}
+
+.productCard:hover {
+  transform: translateY(-0.55rem);
+  box-shadow: 0 24px 54px rgb(73 47 37 / 16%);
+}
+
+.storyVisual::before {
+  position: absolute;
+  top: -2rem;
+  right: -2.5rem;
+  width: 10rem;
+  aspect-ratio: 1;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 2.5rem rgb(255 255 255 / 3%),
+    0 0 0 5rem rgb(255 255 255 / 2%);
+  content: '';
+  pointer-events: none;
+}
+
+.finalCta::after {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(52 64 29 / 10%) 1px, transparent 1px);
+  background-size: 18px 18px;
+  content: '';
+  mask-image: linear-gradient(90deg, black, transparent 36%, transparent 64%, black);
+  pointer-events: none;
+}
+
+@keyframes hero-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes thumb-arrive {
+  from {
+    opacity: 0;
+    transform: translateX(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 639px) {
+  .heroHalo {
+    top: 46%;
+    right: -42%;
+    width: 105vw;
+  }
+
+  .storyVisual::before {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .heroPrimary,
+  .heroThumb {
+    animation: none;
+  }
+
+  .productCard {
+    transition: none;
+  }
+}

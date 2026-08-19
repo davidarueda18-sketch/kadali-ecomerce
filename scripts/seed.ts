@@ -12,6 +12,7 @@ import {
   orders,
   orderItems,
 } from '../lib/db/schema'
+import { PRODUCT_IMAGE_SETS } from './product-image-data'
 
 const db = drizzle(process.env.DATABASE_URL!)
 
@@ -49,8 +50,6 @@ async function seed() {
 
   const hero = insertedImageCategories.find((c) => c.slug === 'hero')!
   const variant = insertedImageCategories.find((c) => c.slug === 'variant')!
-  const background = insertedImageCategories.find((c) => c.slug === 'background')!
-  const noBackground = insertedImageCategories.find((c) => c.slug === 'no-background')!
 
   // Products — línea de velas de postres, presentación 450 g, 95.000 COP
   const insertedProducts = await db
@@ -138,59 +137,37 @@ async function seed() {
 
   console.log(`✓ ${insertedProducts.length} product details inserted`)
 
-  const [limalaya, vidaFresastica, , , meraMora] = insertedProducts
+  const productsBySlug = new Map(insertedProducts.map((product) => [product.slug, product]))
 
-  // Product images — solo Limalaya y Mera Mora tienen imágenes hero/variante reales.
-  // Los demás productos no tienen filas de hero/variant → usan el placeholder en render.
-  await db.insert(productImages).values([
-    // Limalaya (lima)
-    {
-      productId: limalaya.id,
-      imageCategoryId: hero.id,
-      cloudinaryPublicId: 'lima-hero-expanded_bpyvra',
-      position: 0,
-    },
-    {
-      productId: limalaya.id,
-      imageCategoryId: variant.id,
-      cloudinaryPublicId: 'lima-cookies_uqhsow',
-      position: 0,
-    },
-    // Mera Mora (mora)
-    {
-      productId: meraMora.id,
-      imageCategoryId: hero.id,
-      cloudinaryPublicId: 'mora-hero-2_ziuiot',
-      position: 0,
-    },
-    {
-      productId: meraMora.id,
-      imageCategoryId: hero.id,
-      cloudinaryPublicId: 'mora-hero_dt3t4b',
-      position: 1,
-    },
-    {
-      productId: meraMora.id,
-      imageCategoryId: variant.id,
-      cloudinaryPublicId: 'mora-boom_szllu8',
-      position: 0,
-    },
-    // Vida fresástica (fresa) — background + recorte sin fondo para el FeaturedSlider
-    {
-      productId: vidaFresastica.id,
-      imageCategoryId: background.id,
-      cloudinaryPublicId: 'Fresa-bg_btfwhh',
-      position: 0,
-    },
-    {
-      productId: vidaFresastica.id,
-      imageCategoryId: noBackground.id,
-      cloudinaryPublicId: 'fresa-rm-bg_bmludw',
-      position: 0,
-    },
-  ])
+  await db.insert(productImages).values(
+    Object.entries(PRODUCT_IMAGE_SETS).flatMap(([productSlug, imageSet]) => {
+      const product = productsBySlug.get(productSlug)
+
+      if (!product) {
+        throw new Error(`Product not found while seeding images: ${productSlug}`)
+      }
+
+      return [
+        {
+          productId: product.id,
+          imageCategoryId: hero.id,
+          cloudinaryPublicId: imageSet.hero,
+          position: 0,
+        },
+        ...imageSet.variants.map((cloudinaryPublicId, position) => ({
+          productId: product.id,
+          imageCategoryId: variant.id,
+          cloudinaryPublicId,
+          position,
+        })),
+      ]
+    })
+  )
 
   console.log('✓ Product images inserted')
+
+  const limalaya = productsBySlug.get('limalaya')!
+  const meraMora = productsBySlug.get('mera-mora')!
 
   // Sample order
   const insertedOrders = await db

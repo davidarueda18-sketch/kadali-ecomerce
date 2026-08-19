@@ -6,17 +6,29 @@ import { authClient, signIn } from '@/lib/auth-client'
 
 type Step = 'email' | 'otp'
 
+// Cuando Google falla, Better Auth redirige de vuelta acá con ?error=<código>
+const OAUTH_ERRORS: Record<string, string> = {
+  access_denied: 'Cancelaste el acceso con Google.',
+  signup_disabled: 'No pudimos crear tu cuenta con Google.',
+  account_not_linked: 'Ese correo ya tiene cuenta con otro método. Entra con tu correo y código.',
+}
+
 export default function AccesoForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const callbackURL = searchParams.get('next') || '/'
+  const oauthError = searchParams.get('error')
 
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
   const [loadingGoogle, setLoadingGoogle] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(
+    oauthError
+      ? (OAUTH_ERRORS[oauthError] ?? 'No pudimos completar el acceso con Google. Intenta de nuevo.')
+      : null,
+  )
 
   async function handleGoogle() {
     setError(null)

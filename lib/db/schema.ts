@@ -1,4 +1,5 @@
 import {
+  bigint,
   boolean,
   integer,
   numeric,
@@ -60,6 +61,17 @@ export const verification = pgTable('verification', {
   expiresAt: timestamp().notNull(),
   createdAt: timestamp(),
   updatedAt: timestamp(),
+})
+
+// Contadores del rate limit de Better Auth. En serverless cada invocación arranca
+// con su propia memoria, así que el almacenamiento en memoria (el de por defecto)
+// no limita nada real; hay que persistirlo. `key` es único porque el adaptador
+// hace un UPDATE condicional sobre esa columna para contar de forma atómica.
+export const rateLimit = pgTable('rateLimit', {
+  id: text().primaryKey(),
+  key: text().notNull().unique(),
+  count: integer().notNull(),
+  lastRequest: bigint({ mode: 'number' }).notNull(), // epoch en ms, no cabe en integer
 })
 
 export const categories = pgTable('categories', {

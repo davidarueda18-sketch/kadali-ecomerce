@@ -11,7 +11,8 @@
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "db:sync-images": "tsx scripts/sync-product-images.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

@@ -12,9 +12,7 @@ export type SliderProduct = {
   name: string
   slug: string
   price: string
-  imagePublicId: string | null
-  backgroundPublicId: string | null
-  noBgPublicId: string | null
+  imagePublicId: string
 }
 
 type Props = {
@@ -75,13 +73,13 @@ export default function FeaturedSlider({
         {products.map((p, i) => (
           <Image
             key={p.id}
-            src={cloudinaryUrl(p.backgroundPublicId, 1200)}
+            src={cloudinaryUrl(p.imagePublicId, 1200)}
             alt=""
             aria-hidden
             fill
             sizes="100vw"
             priority={i === 0}
-            className={`object-cover transition-opacity duration-500 ${
+            className={`scale-105 object-cover blur-[2px] transition-opacity duration-500 ${
               i === active ? 'opacity-100' : 'opacity-0'
             }`}
           />

@@ -7,18 +7,14 @@ import ProductTile from '@/ui/product/product-tile'
 
 export type ShowcaseProduct = { id: number; name: string; slug: string; photo: string | null }
 
-// Prioriza productos con alguna foto (hero o background); si faltan, completa con el resto
-// (que renderizarán el placeholder vía cloudinaryUrl). noBgPublicId se excluye a propósito:
-// es un recorte transparente pensado para flotar sobre el fondo del slider, no una foto de
-// producto a página completa (con object-cover se verían márgenes transparentes raros).
+// La consulta solo entrega productos con hero, así que todas las tarjetas usan una
+// imagen real de Cloudinary.
 function pickShowcaseProducts(products: SliderProduct[]): ShowcaseProduct[] {
-  const withPhoto = products.filter((p) => p.imagePublicId || p.backgroundPublicId)
-  const rest = products.filter((p) => !(p.imagePublicId || p.backgroundPublicId))
-  return [...withPhoto, ...rest].slice(0, 3).map((p) => ({
+  return products.slice(0, 4).map((p) => ({
     id: p.id,
     name: p.name,
     slug: p.slug,
-    photo: p.imagePublicId ?? p.backgroundPublicId,
+    photo: p.imagePublicId,
   }))
 }
 
@@ -27,7 +23,7 @@ type Props = {
 }
 
 export default function ShowcaseGrid({ products }: Props) {
-  const [spotlight, tileA, tileB] = pickShowcaseProducts(products)
+  const [spotlight, tileA, tileB, promo] = pickShowcaseProducts(products)
 
   // lg:flex-1 hace que crezca para llenar lo que sobre del min-h del contenedor padre
   // (ver app/productos/page.tsx), en vez de asumir un alto fijo de nav+filtros: así se
@@ -41,7 +37,7 @@ export default function ShowcaseGrid({ products }: Props) {
       <FeaturedSlider products={products} />
 
       <div className="grid gap-3 lg:h-full lg:min-h-0 lg:grid-rows-[2fr_1fr]">
-        <PromoBanner />
+        <PromoBanner product={promo ?? spotlight} />
         <SentimentCard product={spotlight} />
       </div>
 

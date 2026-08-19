@@ -1,16 +1,16 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { cloudinaryUrl } from '@/lib/cloudinary'
+import type { ShowcaseProduct } from './showcase-grid'
 
-// Placeholder hasta tener la foto real de la promo.
-const PLACEHOLDER_BANNER_PUBLIC_ID = 'lima-cookies_uqhsow'
+type Props = { product?: ShowcaseProduct }
 
-export default function PromoBanner() {
-  return (
-    <div className="relative min-h-70 overflow-hidden rounded-3xl lg:h-full lg:min-h-0">
+export default function PromoBanner({ product }: Props) {
+  const content = (
+    <>
       <Image
-        src={cloudinaryUrl(PLACEHOLDER_BANNER_PUBLIC_ID, 900)}
-        alt=""
-        aria-hidden
+        src={cloudinaryUrl(product?.photo, 900)}
+        alt={product?.name ?? ''}
         fill
         priority
         sizes="(max-width: 1024px) 100vw, 40vw"
@@ -25,6 +25,23 @@ export default function PromoBanner() {
           Encuentra nuestras <span className="font-semibold text-surface">promociones</span>.
         </p>
       </div>
+    </>
+  )
+
+  if (product) {
+    return (
+      <Link
+        href={`/productos/${product.slug}`}
+        className="relative block min-h-70 overflow-hidden rounded-3xl lg:h-full lg:min-h-0"
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <div className="relative min-h-70 overflow-hidden rounded-3xl lg:h-full lg:min-h-0">
+      {content}
     </div>
   )
 }

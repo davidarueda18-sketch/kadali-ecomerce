@@ -1,5 +1,4 @@
 import { and, asc, desc, eq, gte, ilike, inArray, lte } from 'drizzle-orm'
-import { alias } from 'drizzle-orm/pg-core'
 import { db } from '.'
 import {
   categories,
@@ -22,37 +21,19 @@ const heroCategoryIds = db
   .from(imageCategories)
   .where(eq(imageCategories.slug, 'hero'))
 
-// Subconsultas: ids de las categorías "background" y "no-background" (FeaturedSlider)
-const backgroundCategoryIds = db
-  .select({ id: imageCategories.id })
-  .from(imageCategories)
-  .where(eq(imageCategories.slug, 'background'))
-
-const noBackgroundCategoryIds = db
-  .select({ id: imageCategories.id })
-  .from(imageCategories)
-  .where(eq(imageCategories.slug, 'no-background'))
-
-// product_images aliased dos veces más para poder unirlo 3 veces (hero/background/no-background)
-const bgImages = alias(productImages, 'bg_images')
-const noBgImages = alias(productImages, 'no_bg_images')
-
-// Productos activos con su imagen principal (hero, position = 0), más el background
-// y el recorte sin fondo (position = 0) para el FeaturedSlider — null si el producto
-// todavía no tiene esas categorías asignadas.
+// Productos activos que sí tienen una imagen hero principal. El INNER JOIN evita
+// enviar al front productos sin una imagen real en Cloudinary.
 export async function getActiveProducts() {
-  const rows = await db
+  return db
     .select({
       id: products.id,
       name: products.name,
       slug: products.slug,
       price: products.price,
       imagePublicId: productImages.cloudinaryPublicId,
-      backgroundPublicId: bgImages.cloudinaryPublicId,
-      noBgPublicId: noBgImages.cloudinaryPublicId,
     })
     .from(products)
-    .leftJoin(
+    .innerJoin(
       productImages,
       and(
         eq(productImages.productId, products.id),
@@ -60,26 +41,8 @@ export async function getActiveProducts() {
         eq(productImages.position, 0)
       )
     )
-    .leftJoin(
-      bgImages,
-      and(
-        eq(bgImages.productId, products.id),
-        inArray(bgImages.imageCategoryId, backgroundCategoryIds),
-        eq(bgImages.position, 0)
-      )
-    )
-    .leftJoin(
-      noBgImages,
-      and(
-        eq(noBgImages.productId, products.id),
-        inArray(noBgImages.imageCategoryId, noBackgroundCategoryIds),
-        eq(noBgImages.position, 0)
-      )
-    )
     .where(eq(products.active, true))
     .orderBy(asc(products.id))
-
-  return rows
 }
 
 export async function getCategories() {
@@ -160,7 +123,7 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
       imagePublicId: productImages.cloudinaryPublicId,
     })
     .from(products)
-    .leftJoin(
+    .innerJoin(
       productImages,
       and(
         eq(productImages.productId, products.id),
@@ -172,7 +135,7 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
     .orderBy(orderBy)
 }
 
-// Producto por slug con todas sus imágenes (heros primero, luego variantes)
+// Producto por slug con la hero y las variantes separadas para la galería del PDP.
 export async function getProductBySlug(slug: string) {
   const [product] = await db
     .select()
@@ -182,7 +145,7 @@ export async function getProductBySlug(slug: string) {
 
   if (!product) return null
 
-  const images = await db
+  const galleryImages = await db
     .select({
       id: productImages.id,
       cloudinaryPublicId: productImages.cloudinaryPublicId,
@@ -199,7 +162,10 @@ export async function getProductBySlug(slug: string) {
     )
     .orderBy(asc(imageCategories.sortOrder), asc(productImages.position))
 
-  return { ...product, images }
+  const heroImage = galleryImages.find((image) => image.categorySlug === 'hero') ?? null
+  const variantImages = galleryImages.filter((image) => image.categorySlug === 'variant')
+
+  return { ...product, heroImage, variantImages }
 }
 
 // Pedidos de un correo verificado (cubre pedidos hechos como invitado antes de registrarse,
