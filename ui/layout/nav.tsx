@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { Heart, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart'
+import { useFavorites } from '@/lib/favorites'
 import IconButton from '@/ui/common/icon-button'
 import NavSearch from '@/ui/layout/nav-search'
 import LoginButton from '@/ui/layout/login-button'
@@ -13,6 +14,7 @@ import LoginButton from '@/ui/layout/login-button'
 export default function Nav() {
   const pathname = usePathname()
   const { getCount } = useCart()
+  const { count: favoritesCount } = useFavorites()
   const count = getCount()
   const isHome = pathname === '/'
   const isProducts = pathname.startsWith('/productos')
@@ -51,13 +53,14 @@ export default function Nav() {
 
         {/* Acciones — en mobile viven en el bottom nav */}
         <div className="hidden items-center gap-2 md:flex">
-          {/* Favoritos — solo visual por ahora */}
           <IconButton
             icon={Heart}
             label="Favoritos"
+            href="/favoritos"
             variant="raised"
             size="md"
-            iconClassName="fill-red-500 text-red-500"
+            badge={favoritesCount}
+            iconClassName={favoritesCount > 0 ? 'fill-red-500 text-red-500' : ''}
           />
 
           {/* Carrito */}

@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Check, Heart, ShoppingBag } from 'lucide-react'
+import { Check, ShoppingBag } from 'lucide-react'
 import { cloudinaryUrl } from '@/lib/cloudinary'
 import { formatPrice } from '@/lib/format'
 import { useCart } from '@/lib/cart'
 import IconButton from '@/ui/common/icon-button'
 import RatingBadge from '@/ui/product/rating-badge'
+import FavoriteButton from '@/ui/product/favorite-button'
 import type { SliderProduct } from './featured-slider'
 
 type Props = { product: SliderProduct }
@@ -55,12 +56,15 @@ export default function FeaturedProductCard({ product }: Props) {
       </Link>
 
       <div className="mt-4 flex justify-end gap-2">
-        <IconButton
-          icon={Heart}
-          label="Agregar a favoritos"
-          variant="raised"
+        <FavoriteButton
+          product={{
+            productId: product.id,
+            slug: product.slug,
+            name: product.name,
+            price: Number(product.price),
+            imagePublicId: product.imagePublicId,
+          }}
           size="md"
-          iconClassName="fill-red-500 text-red-500"
           className="border border-line"
         />
         <IconButton

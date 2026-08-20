@@ -7,10 +7,14 @@ import { useCart, type CartItem } from '@/lib/cart'
 type Props = {
   product: Omit<CartItem, 'quantity'>
   stock: number
-  showBuyNow?: boolean
+  buyNowDestination?: '/carrito' | '/checkout'
 }
 
-export default function AddToCartButton({ product, stock, showBuyNow = false }: Props) {
+export default function AddToCartButton({
+  product,
+  stock,
+  buyNowDestination = '/carrito',
+}: Props) {
   const router = useRouter()
   const { addItem, clearCart } = useCart()
   const [quantity, setQuantity] = useState(1)
@@ -23,9 +27,11 @@ export default function AddToCartButton({ product, stock, showBuyNow = false }: 
   }
 
   function handleBuyNow() {
-    clearCart()
+    if (buyNowDestination === '/checkout') {
+      clearCart()
+    }
     addItem(product, quantity)
-    router.push('/checkout')
+    router.push(buyNowDestination)
   }
 
   if (stock < 1) {
@@ -65,28 +71,29 @@ export default function AddToCartButton({ product, stock, showBuyNow = false }: 
         <span className="text-xs text-fg-muted">{stock} disponibles</span>
       </div>
 
-      {/* Botón principal */}
-      <button
-        type="button"
-        onClick={handleAdd}
-        className={`w-full rounded-xl py-3.5 text-sm font-semibold transition-all ${
-          added
-            ? 'bg-matcha-200 text-fg'
-            : 'bg-brand-strong text-surface hover:bg-orchid-700 active:scale-[0.98]'
-        }`}
-      >
-        {added ? '✓ Agregado al carrito' : 'Agregar al carrito'}
-      </button>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <button
+          type="button"
+          onClick={handleAdd}
+          className={`w-full rounded-xl border py-3.5 text-sm font-semibold transition-all active:scale-[0.98] ${
+            added
+              ? 'border-matcha-300 bg-matcha-200 text-fg'
+              : 'border-brand-strong bg-surface text-brand-deep hover:bg-petal-100'
+          }`}
+        >
+          {added ? '✓ Agregado al carrito' : 'Agregar al carrito'}
+        </button>
 
-      {showBuyNow && (
         <button
           type="button"
           onClick={handleBuyNow}
-          className="w-full rounded-xl border border-brand-strong bg-surface py-3.5 text-sm font-semibold text-brand-deep transition-colors hover:bg-bg-alt active:scale-[0.98]"
+          className="w-full rounded-xl bg-brand-strong py-3.5 text-sm font-semibold text-surface transition-all hover:bg-orchid-700 active:scale-[0.98]"
         >
-          Comprar ahora con Mercado Pago
+          {buyNowDestination === '/checkout'
+            ? 'Comprar ahora con Mercado Pago'
+            : 'Comprar ahora'}
         </button>
-      )}
+      </div>
     </div>
   )
 }

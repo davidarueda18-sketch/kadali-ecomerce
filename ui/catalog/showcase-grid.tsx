@@ -5,7 +5,13 @@ import SentimentCard from './sentiment-card'
 import CouponCard from './coupon-card'
 import ProductTile from '@/ui/product/product-tile'
 
-export type ShowcaseProduct = { id: number; name: string; slug: string; photo: string | null }
+export type ShowcaseProduct = {
+  id: number
+  name: string
+  slug: string
+  price: string
+  photo: string | null
+}
 
 // La consulta solo entrega productos con hero, así que todas las tarjetas usan una
 // imagen real de Cloudinary.
@@ -14,6 +20,7 @@ function pickShowcaseProducts(products: SliderProduct[]): ShowcaseProduct[] {
     id: p.id,
     name: p.name,
     slug: p.slug,
+    price: p.price,
     photo: p.imagePublicId,
   }))
 }

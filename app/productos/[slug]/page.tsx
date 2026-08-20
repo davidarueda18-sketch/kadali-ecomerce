@@ -6,6 +6,7 @@ import { formatPrice } from '@/lib/format'
 import AddToCartButton from '@/ui/product/add-to-cart-button'
 import ProductGallery from '@/ui/product/product-gallery'
 import { PAYMENT_TEST_PRODUCT_SLUG } from '@/lib/payment-config'
+import FavoriteButton from '@/ui/product/favorite-button'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -85,6 +86,20 @@ export default async function ProductoDetallePage({ params }: Props) {
             <p className="text-sm text-fg-muted leading-relaxed">{producto.description}</p>
           )}
 
+          {!isPaymentTestProduct && (
+            <FavoriteButton
+              variant="pill"
+              product={{
+                productId: producto.id,
+                slug: producto.slug,
+                name: producto.name,
+                price: Number(producto.price),
+                imagePublicId: imagenPrincipal,
+              }}
+              className="self-start"
+            />
+          )}
+
           {/* Badge de stock */}
           <div>
             {producto.stock < 1 ? (
@@ -118,7 +133,7 @@ export default async function ProductoDetallePage({ params }: Props) {
               imagePublicId: imagenPrincipal,
             }}
             stock={producto.stock}
-            showBuyNow={isPaymentTestProduct}
+            buyNowDestination={isPaymentTestProduct ? '/checkout' : '/carrito'}
           />
 
           {/* Link de vuelta */}

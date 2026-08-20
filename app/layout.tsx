@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { nunitoSans, fredoka } from "@/ui/layout/fonts";
 import { CartProvider } from "@/lib/cart";
+import { FavoritesProvider } from "@/lib/favorites";
 import SiteChrome from "@/ui/layout/site-chrome";
 import "@/ui/layout/globals.css";
 
@@ -20,9 +21,11 @@ export default function RootLayout({
       className={`${nunitoSans.variable} ${fredoka.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <CartProvider>
-          <SiteChrome>{children}</SiteChrome>
-        </CartProvider>
+        <FavoritesProvider>
+          <CartProvider>
+            <SiteChrome>{children}</SiteChrome>
+          </CartProvider>
+        </FavoritesProvider>
       </body>
     </html>
   );

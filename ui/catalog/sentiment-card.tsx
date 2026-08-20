@@ -2,9 +2,9 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { Heart, ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import { cloudinaryUrl } from '@/lib/cloudinary'
-import IconButton from '@/ui/common/icon-button'
+import FavoriteButton from '@/ui/product/favorite-button'
 import type { ShowcaseProduct } from './showcase-grid'
 
 type Props = { product?: ShowcaseProduct }
@@ -32,12 +32,15 @@ export default function SentimentCard({ product }: Props) {
           />
 
           <div className="absolute right-3 top-3">
-            <IconButton
-              icon={Heart}
-              label="Agregar a favoritos"
-              variant="raised"
+            <FavoriteButton
+              product={{
+                productId: product.id,
+                slug: product.slug,
+                name: product.name,
+                price: Number(product.price),
+                imagePublicId: product.photo,
+              }}
               size="sm"
-              iconClassName="fill-red-500 text-red-500"
               className="border border-line"
             />
           </div>

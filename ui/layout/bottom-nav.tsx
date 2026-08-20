@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Heart, Home, LayoutGrid, ListFilter, ShoppingBag, type LucideIcon } from 'lucide-react'
 import { useCart } from '@/lib/cart'
+import { useFavorites } from '@/lib/favorites'
 
 type Item = {
   label: string
@@ -16,13 +17,20 @@ type Item = {
 export default function BottomNav() {
   const pathname = usePathname()
   const { getCount } = useCart()
+  const { count: favoritesCount } = useFavorites()
   const count = getCount()
 
   const items: Item[] = [
     { label: 'Inicio', icon: Home, href: '/', isActive: (p) => p === '/' },
     { label: 'Productos', icon: LayoutGrid, href: '/productos', isActive: (p) => p.startsWith('/productos') },
     { label: 'Carrito', icon: ShoppingBag, href: '/carrito', isActive: (p) => p.startsWith('/carrito'), badge: count },
-    { label: 'Favoritos', icon: Heart },
+    {
+      label: 'Favoritos',
+      icon: Heart,
+      href: '/favoritos',
+      isActive: (p) => p.startsWith('/favoritos'),
+      badge: favoritesCount,
+    },
     { label: 'Mas', icon: ListFilter },
   ]
 

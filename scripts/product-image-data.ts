@@ -1,3 +1,5 @@
+import { PRODUCT_HERO_IMAGES } from '../lib/product-hero-images'
+
 export type ProductImageSet = {
   name: string
   hero: string
@@ -9,7 +11,7 @@ export type ProductImageSet = {
 export const PRODUCT_IMAGE_SETS = {
   limalaya: {
     name: 'Lima',
-    hero: 'ChatGPT_Image_13_ago_2026_11_52_11_ctwjn4',
+    hero: PRODUCT_HERO_IMAGES.limalaya,
     variants: [
       'ChatGPT_Image_13_ago_2026_12_38_12_pz8b1d',
       'ChatGPT_Image_13_ago_2026_12_20_24_bfqxuj',
@@ -20,7 +22,7 @@ export const PRODUCT_IMAGE_SETS = {
   },
   'vida-fresastica': {
     name: 'Fresa',
-    hero: 'ChatGPT_Image_13_ago_2026_11_57_07_lndqnf',
+    hero: PRODUCT_HERO_IMAGES['vida-fresastica'],
     variants: [
       'ChatGPT_Image_13_ago_2026_12_14_15_eoladx',
       'ChatGPT_Image_13_ago_2026_12_04_06_lkv8as',
@@ -31,7 +33,7 @@ export const PRODUCT_IMAGE_SETS = {
   },
   'sand-ia': {
     name: 'Sandía',
-    hero: 'ChatGPT_Image_13_ago_2026_12_15_59_rr5fsw',
+    hero: PRODUCT_HERO_IMAGES['sand-ia'],
     variants: [
       'ChatGPT_Image_13_ago_2026_12_35_36_rpflku',
       'ChatGPT_Image_13_ago_2026_12_17_22_klnqvw',
@@ -42,7 +44,7 @@ export const PRODUCT_IMAGE_SETS = {
   },
   'mera-mora': {
     name: 'Mora',
-    hero: 'ChatGPT_Image_13_ago_2026_11_58_44_i0fwsd',
+    hero: PRODUCT_HERO_IMAGES['mera-mora'],
     variants: [
       'ChatGPT_Image_13_ago_2026_12_01_29_dkyvxb',
       'ChatGPT_Image_13_ago_2026_12_34_08_hgizto',

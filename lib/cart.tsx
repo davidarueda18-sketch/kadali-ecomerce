@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
+import { resolveProductHeroImage } from '@/lib/product-hero-images'
 
 export type CartItem = {
   productId: number
@@ -13,6 +14,7 @@ export type CartItem = {
 
 type CartContextType = {
   items: CartItem[]
+  isReady: boolean
   addItem: (item: Omit<CartItem, 'quantity'>, quantity: number) => void
   removeItem: (productId: number) => void
   updateQuantity: (productId: number, quantity: number) => void
@@ -25,10 +27,14 @@ const CartContext = createContext<CartContextType | null>(null)
 
 const STORAGE_KEY = 'kadali-cart'
 
-function isCartItem(value: unknown): value is CartItem {
+type StoredCartItem = Omit<CartItem, 'imagePublicId'> & {
+  imagePublicId?: string | null
+}
+
+function isStoredCartItem(value: unknown): value is StoredCartItem {
   if (!value || typeof value !== 'object') return false
 
-  const item = value as Partial<CartItem>
+  const item = value as Partial<StoredCartItem>
   return (
     Number.isInteger(item.productId) &&
     typeof item.slug === 'string' &&
@@ -37,8 +43,17 @@ function isCartItem(value: unknown): value is CartItem {
     Number.isFinite(item.price) &&
     Number.isInteger(item.quantity) &&
     Number(item.quantity) > 0 &&
-    (typeof item.imagePublicId === 'string' || item.imagePublicId === null)
+    (item.imagePublicId === undefined ||
+      typeof item.imagePublicId === 'string' ||
+      item.imagePublicId === null)
   )
+}
+
+function normalizeCartItem(item: StoredCartItem): CartItem {
+  return {
+    ...item,
+    imagePublicId: resolveProductHeroImage(item.slug, item.imagePublicId),
+  }
 }
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
@@ -53,7 +68,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const parsed: unknown = JSON.parse(stored)
         // Hidratación única desde localStorage (sistema externo) al montar
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(Array.isArray(parsed) ? parsed.filter(isCartItem) : [])
+        setItems(
+          Array.isArray(parsed) ? parsed.filter(isStoredCartItem).map(normalizeCartItem) : []
+        )
       }
     } catch {
       // El almacenamiento puede estar corrupto o deshabilitado por el navegador.
@@ -74,16 +91,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [items, loaded])
 
   function addItem(item: Omit<CartItem, 'quantity'>, quantity: number) {
+    const normalizedItem = {
+      ...item,
+      imagePublicId: resolveProductHeroImage(item.slug, item.imagePublicId),
+    }
     setItems((prev) => {
-      const existing = prev.find((i) => i.productId === item.productId)
+      const existing = prev.find((i) => i.productId === normalizedItem.productId)
       if (existing) {
         return prev.map((i) =>
-          i.productId === item.productId
-            ? { ...i, ...item, quantity: i.quantity + quantity }
+          i.productId === normalizedItem.productId
+            ? { ...i, ...normalizedItem, quantity: i.quantity + quantity }
             : i
         )
       }
-      return [...prev, { ...item, quantity }]
+      return [...prev, { ...normalizedItem, quantity }]
     })
   }
 
@@ -112,7 +133,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, updateQuantity, clearCart, getTotal, getCount }}
+      value={{
+        items,
+        isReady: loaded,
+        addItem,
+        removeItem,
+        updateQuantity,
+        clearCart,
+        getTotal,
+        getCount,
+      }}
     >
       {children}
     </CartContext.Provider>

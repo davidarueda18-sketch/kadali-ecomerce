@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { cloudinaryUrl } from '@/lib/cloudinary'
 import { formatPrice } from '@/lib/format'
 import { useCart } from '@/lib/cart'
+import { resolveProductHeroImage } from '@/lib/product-hero-images'
 
 export default function CarritoPage() {
   const { items, updateQuantity, removeItem, getTotal } = useCart()
@@ -49,7 +50,10 @@ export default function CarritoPage() {
               <Link href={`/productos/${item.slug}`} className="shrink-0">
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-bg-alt">
                   <Image
-                    src={cloudinaryUrl(item.imagePublicId, 200)}
+                    src={cloudinaryUrl(
+                      resolveProductHeroImage(item.slug, item.imagePublicId),
+                      200
+                    )}
                     alt={item.name}
                     fill
                     sizes="80px"
