@@ -118,6 +118,7 @@ export default async function ProductoDetallePage({ params }: Props) {
               imagePublicId: imagenPrincipal,
             }}
             stock={producto.stock}
+            showBuyNow={isPaymentTestProduct}
           />
 
           {/* Link de vuelta */}

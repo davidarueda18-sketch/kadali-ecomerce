@@ -1,15 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { useCart, type CartItem } from '@/lib/cart'
 
 type Props = {
   product: Omit<CartItem, 'quantity'>
   stock: number
+  showBuyNow?: boolean
 }
 
-export default function AddToCartButton({ product, stock }: Props) {
-  const { addItem } = useCart()
+export default function AddToCartButton({ product, stock, showBuyNow = false }: Props) {
+  const router = useRouter()
+  const { addItem, clearCart } = useCart()
   const [quantity, setQuantity] = useState(1)
   const [added, setAdded] = useState(false)
 
@@ -17,6 +20,12 @@ export default function AddToCartButton({ product, stock }: Props) {
     addItem(product, quantity)
     setAdded(true)
     setTimeout(() => setAdded(false), 1500)
+  }
+
+  function handleBuyNow() {
+    clearCart()
+    addItem(product, quantity)
+    router.push('/checkout')
   }
 
   if (stock < 1) {
@@ -34,7 +43,9 @@ export default function AddToCartButton({ product, stock }: Props) {
         <span className="text-sm text-fg-muted">Cantidad</span>
         <div className="flex items-center border border-line rounded-lg overflow-hidden bg-surface">
           <button
+            type="button"
             onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            aria-label="Disminuir cantidad"
             className="px-3 py-2 text-fg hover:bg-bg-alt transition-colors text-sm"
           >
             −
@@ -43,7 +54,9 @@ export default function AddToCartButton({ product, stock }: Props) {
             {quantity}
           </span>
           <button
+            type="button"
             onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
+            aria-label="Aumentar cantidad"
             className="px-3 py-2 text-fg hover:bg-bg-alt transition-colors text-sm"
           >
             +
@@ -54,6 +67,7 @@ export default function AddToCartButton({ product, stock }: Props) {
 
       {/* Botón principal */}
       <button
+        type="button"
         onClick={handleAdd}
         className={`w-full rounded-xl py-3.5 text-sm font-semibold transition-all ${
           added
@@ -63,6 +77,16 @@ export default function AddToCartButton({ product, stock }: Props) {
       >
         {added ? '✓ Agregado al carrito' : 'Agregar al carrito'}
       </button>
+
+      {showBuyNow && (
+        <button
+          type="button"
+          onClick={handleBuyNow}
+          className="w-full rounded-xl border border-brand-strong bg-surface py-3.5 text-sm font-semibold text-brand-deep transition-colors hover:bg-bg-alt active:scale-[0.98]"
+        >
+          Comprar ahora con Mercado Pago
+        </button>
+      )}
     </div>
   )
 }

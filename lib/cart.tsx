@@ -25,29 +25,51 @@ const CartContext = createContext<CartContextType | null>(null)
 
 const STORAGE_KEY = 'kadali-cart'
 
+function isCartItem(value: unknown): value is CartItem {
+  if (!value || typeof value !== 'object') return false
+
+  const item = value as Partial<CartItem>
+  return (
+    Number.isInteger(item.productId) &&
+    typeof item.slug === 'string' &&
+    typeof item.name === 'string' &&
+    typeof item.price === 'number' &&
+    Number.isFinite(item.price) &&
+    Number.isInteger(item.quantity) &&
+    Number(item.quantity) > 0 &&
+    (typeof item.imagePublicId === 'string' || item.imagePublicId === null)
+  )
+}
+
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([])
   const [loaded, setLoaded] = useState(false)
 
   // Cargar desde localStorage al montar
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        const parsed: unknown = JSON.parse(stored)
         // Hidratación única desde localStorage (sistema externo) al montar
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setItems(JSON.parse(stored))
-      } catch {
-        // ignorar JSON corrupto
+        setItems(Array.isArray(parsed) ? parsed.filter(isCartItem) : [])
       }
+    } catch {
+      // El almacenamiento puede estar corrupto o deshabilitado por el navegador.
+    } finally {
+      setLoaded(true)
     }
-    setLoaded(true)
   }, [])
 
   // Persistir cuando cambian los items (después de la carga inicial)
   useEffect(() => {
     if (loaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+      } catch {
+        // El carrito sigue funcionando en memoria si localStorage no está disponible.
+      }
     }
   }, [items, loaded])
 
