@@ -16,6 +16,27 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Mercado Pago
+
+Para cobrar en producción configura estas variables en el entorno desplegado:
+
+```dotenv
+MP_ACCESS_TOKEN=tu_access_token
+MP_WEBHOOK_SECRET=la_clave_secreta_de_webhooks
+NEXT_PUBLIC_BASE_URL=https://tu-dominio.com
+```
+
+En Mercado Pago activa el evento **Pagos** con la URL
+`https://tu-dominio.com/api/mercadopago/webhook`. La URL debe ser HTTPS. El producto interno de
+prueba está oculto del catálogo y se abre directamente en `/productos/prueba-pago`.
+
+Para sincronizar en Neon el precio de las velas y el producto de prueba:
+
+```bash
+npm run db:sync-payment-catalog
+npm run db:sync-payment-catalog -- --apply
+```
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

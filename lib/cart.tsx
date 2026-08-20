@@ -57,7 +57,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (existing) {
         return prev.map((i) =>
           i.productId === item.productId
-            ? { ...i, quantity: i.quantity + quantity }
+            ? { ...i, ...item, quantity: i.quantity + quantity }
             : i
         )
       }

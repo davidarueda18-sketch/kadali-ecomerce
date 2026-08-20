@@ -5,6 +5,7 @@ import { getProductBySlug } from '@/lib/db/queries'
 import { formatPrice } from '@/lib/format'
 import AddToCartButton from '@/ui/product/add-to-cart-button'
 import ProductGallery from '@/ui/product/product-gallery'
+import { PAYMENT_TEST_PRODUCT_SLUG } from '@/lib/payment-config'
 
 type Props = {
   params: Promise<{ slug: string }>
@@ -28,6 +29,7 @@ export default async function ProductoDetallePage({ params }: Props) {
 
   const imagenPrincipal = producto.heroImage?.cloudinaryPublicId ?? null
   const stockBajo = producto.stock > 0 && producto.stock <= 5
+  const isPaymentTestProduct = producto.slug === PAYMENT_TEST_PRODUCT_SLUG
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -66,6 +68,14 @@ export default async function ProductoDetallePage({ params }: Props) {
           <p className="text-2xl font-semibold text-fg">
             {formatPrice(producto.price)}
           </p>
+
+          {isPaymentTestProduct && (
+            <div className="rounded-2xl border border-sienna/30 bg-sienna/10 p-4 text-sm leading-relaxed text-fg">
+              Producto oculto para validación interna. El checkout cobrará{' '}
+              <strong>{formatPrice(producto.price)}</strong> con las credenciales activas y la pantalla
+              final indicará si fue una transacción real o de prueba. Págalo siempre por separado.
+            </div>
+          )}
 
           {/* Separador */}
           <hr className="border-line" />

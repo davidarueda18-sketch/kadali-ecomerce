@@ -13,6 +13,7 @@ import {
   orderItems,
 } from '../lib/db/schema'
 import { PRODUCT_IMAGE_SETS } from './product-image-data'
+import { CANDLE_PRICE_COP, PAYMENT_TEST_PRODUCT } from '../lib/payment-config'
 
 const db = drizzle(process.env.DATABASE_URL!)
 
@@ -51,7 +52,7 @@ async function seed() {
   const hero = insertedImageCategories.find((c) => c.slug === 'hero')!
   const variant = insertedImageCategories.find((c) => c.slug === 'variant')!
 
-  // Products — línea de velas de postres, presentación 450 g, 95.000 COP
+  // Products — línea de velas de postres, presentación 450 g, 90.000 COP
   const insertedProducts = await db
     .insert(products)
     .values([
@@ -60,7 +61,7 @@ async function seed() {
         slug: 'limalaya',
         description:
           'Vela de lima con fragancia lima-limón. Aroma cítrico y refrescante. Presentación de 450 g.',
-        price: '95000',
+        price: CANDLE_PRICE_COP,
         stock: 20,
         categoryId: postres.id,
         active: true,
@@ -70,7 +71,7 @@ async function seed() {
         slug: 'vida-fresastica',
         description:
           'Vela de fresa con fragancia fresa fresca. Dulce y afrutada. Presentación de 450 g.',
-        price: '95000',
+        price: CANDLE_PRICE_COP,
         stock: 20,
         categoryId: postres.id,
         active: true,
@@ -80,7 +81,7 @@ async function seed() {
         slug: 'dulce-delito',
         description:
           'Vela y fragancia de chocolate. Un aroma goloso e irresistible. Presentación de 450 g.',
-        price: '95000',
+        price: CANDLE_PRICE_COP,
         stock: 20,
         categoryId: postres.id,
         active: true,
@@ -90,7 +91,7 @@ async function seed() {
         slug: 'sand-ia',
         description:
           'Vela y fragancia de sandía. Fresca y jugosa, ideal para el verano. Presentación de 450 g.',
-        price: '95000',
+        price: CANDLE_PRICE_COP,
         stock: 20,
         categoryId: postres.id,
         active: true,
@@ -100,7 +101,7 @@ async function seed() {
         slug: 'mera-mora',
         description:
           'Vela y fragancia de mora. Aroma intenso y frutal. Presentación de 450 g.',
-        price: '95000',
+        price: CANDLE_PRICE_COP,
         stock: 20,
         categoryId: postres.id,
         active: true,
@@ -109,6 +110,13 @@ async function seed() {
     .returning()
 
   console.log(`✓ ${insertedProducts.length} products inserted`)
+
+  await db.insert(products).values({
+    ...PAYMENT_TEST_PRODUCT,
+    categoryId: null,
+  })
+
+  console.log('✓ Hidden payment test product inserted')
 
   // Ficha técnica por vela — fragancia (filtrable) + especificaciones comunes
   const fragranceBySlug: Record<string, { fragrance: string; fragranceSlug: string }> = {
@@ -182,9 +190,9 @@ async function seed() {
         city: 'Bogotá',
         zipCode: '110231',
         country: 'Colombia',
-        subtotal: '190000',
+        subtotal: '180000',
         shippingCost: '8000',
-        total: '198000',
+        total: '188000',
         status: 'delivered',
       },
     ])
@@ -199,7 +207,7 @@ async function seed() {
       productName: limalaya.name,
       unitPrice: limalaya.price,
       quantity: 1,
-      subtotal: '95000',
+      subtotal: CANDLE_PRICE_COP,
     },
     {
       orderId: insertedOrders[0].id,
@@ -207,7 +215,7 @@ async function seed() {
       productName: meraMora.name,
       unitPrice: meraMora.price,
       quantity: 1,
-      subtotal: '95000',
+      subtotal: CANDLE_PRICE_COP,
     },
   ])
 
