@@ -4,6 +4,8 @@ export type ProductImageSet = {
   name: string
   hero: string
   variants: readonly string[]
+  theme?: string
+  plate?: string
 }
 
 // Public IDs de Cloudinary. No incluyen la versión ni la extensión para que
@@ -12,6 +14,8 @@ export const PRODUCT_IMAGE_SETS = {
   limalaya: {
     name: 'Lima',
     hero: PRODUCT_HERO_IMAGES.limalaya,
+    theme: 'Lima_theme_or6pxv',
+    plate: 'Lima_plate_fnek4u',
     variants: [
       'ChatGPT_Image_13_ago_2026_12_38_12_pz8b1d',
       'ChatGPT_Image_13_ago_2026_12_20_24_bfqxuj',
@@ -23,6 +27,8 @@ export const PRODUCT_IMAGE_SETS = {
   'vida-fresastica': {
     name: 'Fresa',
     hero: PRODUCT_HERO_IMAGES['vida-fresastica'],
+    theme: undefined,
+    plate: undefined,
     variants: [
       'ChatGPT_Image_13_ago_2026_12_14_15_eoladx',
       'ChatGPT_Image_13_ago_2026_12_04_06_lkv8as',
@@ -31,9 +37,23 @@ export const PRODUCT_IMAGE_SETS = {
       'ChatGPT_Image_13_ago_2026_12_55_13_qmeemb',
     ],
   },
+  'dulce-delito': {
+    name: 'Chocolate',
+    hero: PRODUCT_HERO_IMAGES['dulce-delito'],
+    theme: 'Choco_theme_csgk4t',
+    plate: 'Choco_plate_tpw0wy',
+    variants: [
+      'Choco_theme_qywj68',
+      'Choco_v1_up_ycv8og',
+      'Choco_v1_front_ragut7',
+      'Choco_v2_up_nrhp2j',
+    ],
+  },
   'sand-ia': {
     name: 'Sandía',
     hero: PRODUCT_HERO_IMAGES['sand-ia'],
+    theme: 'Sandia_theme_wrghty',
+    plate: 'Sandia_plate_izda3q',
     variants: [
       'ChatGPT_Image_13_ago_2026_12_35_36_rpflku',
       'ChatGPT_Image_13_ago_2026_12_17_22_klnqvw',
@@ -45,6 +65,8 @@ export const PRODUCT_IMAGE_SETS = {
   'mera-mora': {
     name: 'Mora',
     hero: PRODUCT_HERO_IMAGES['mera-mora'],
+    theme: 'Mora_theme_z64szu',
+    plate: 'Mora_plate_zrjqzd',
     variants: [
       'ChatGPT_Image_13_ago_2026_12_01_29_dkyvxb',
       'ChatGPT_Image_13_ago_2026_12_34_08_hgizto',

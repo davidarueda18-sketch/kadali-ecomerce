@@ -1,81 +1,116 @@
 'use client'
 
-import { Suspense } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Heart, ShoppingBag } from 'lucide-react'
+import { Search, ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart'
-import { useFavorites } from '@/lib/favorites'
 import IconButton from '@/ui/common/icon-button'
-import NavSearch from '@/ui/layout/nav-search'
 import LoginButton from '@/ui/layout/login-button'
+
+const NAV_ITEMS = [
+  {
+    label: 'Velas',
+    href: '/productos',
+    isActive: (pathname: string) => pathname.startsWith('/productos'),
+  },
+  {
+    label: 'Favoritos',
+    href: '/favoritos',
+    isActive: (pathname: string) => pathname.startsWith('/favoritos'),
+  },
+  {
+    label: 'Nosotros',
+    href: '/nosotros',
+    isActive: (pathname: string) => pathname.startsWith('/nosotros'),
+  },
+] as const
 
 export default function Nav() {
   const pathname = usePathname()
   const { getCount } = useCart()
-  const { count: favoritesCount } = useFavorites()
   const count = getCount()
   const isHome = pathname === '/'
-  const isProducts = pathname.startsWith('/productos')
 
   return (
     <nav
-      className={`inset-x-0 top-0 z-40 px-4 py-3 md:px-6 md:py-4 ${
-        isHome ? 'absolute bg-transparent' : 'relative bg-bg'
+      aria-label="Navegación principal"
+      className={`inset-x-0 top-0 z-40 px-5 py-5 md:px-8 lg:px-12 ${
+        isHome ? 'absolute' : 'relative bg-bg'
       }`}
     >
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2">
-        <div className="flex flex-1 items-center gap-3 md:gap-4">
-          {/* Logo */}
-          <Link href="/" className="shrink-0">
-            <Image src="/kadali-logo.svg" alt="Kadali" width={100} height={40} priority />
-          </Link>
+      <div className="relative mx-auto hidden max-w-7xl items-center justify-between md:flex">
+        <div className="flex items-center gap-6 lg:gap-8">
+          {NAV_ITEMS.map((item) => {
+            const active = item.isActive(pathname)
 
-          {/* En desktop vive en el navbar; en mobile ya está en BottomNav. */}
-          <Link
-            href="/productos"
-            aria-current={isProducts ? 'page' : undefined}
-            className={`hidden h-10 shrink-0 items-center rounded-full px-4 text-sm font-bold transition-colors md:inline-flex ${
-              isProducts
-                ? 'bg-brand-deep text-white'
-                : 'text-[#4d383e] hover:bg-white/65 hover:text-brand-deep'
-            }`}
-          >
-            Productos
-          </Link>
-
-          {/* Búsqueda (pill en desktop, botón desplegable en mobile) */}
-          <Suspense fallback={<SearchFallback />}>
-            <NavSearch />
-          </Suspense>
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? 'page' : undefined}
+                className={`text-xs font-bold uppercase tracking-wider transition ${
+                  active
+                    ? 'text-brand-strong'
+                    : 'text-[#402c34] hover:text-brand-strong'
+                }`}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
         </div>
 
-        {/* Acciones — en mobile viven en el bottom nav */}
-        <div className="hidden items-center gap-2 md:flex">
+        <Link
+          href="/"
+          aria-label="Kadali, inicio"
+          className="absolute left-1/2 -translate-x-1/2 px-3"
+        >
+          <Image src="/kadali-logo.svg" alt="Kadali" width={118} height={46} priority />
+        </Link>
+
+        <div className="flex items-center justify-end gap-1">
           <IconButton
-            icon={Heart}
-            label="Favoritos"
-            href="/favoritos"
-            variant="raised"
+            icon={Search}
+            label="Buscar"
+            href="/productos"
+            variant="plain"
             size="md"
-            badge={favoritesCount}
-            iconClassName={favoritesCount > 0 ? 'fill-red-500 text-red-500' : ''}
           />
+          <LoginButton compact />
+          <IconButton
+            icon={ShoppingBag}
+            label="Carrito"
+            href="/carrito"
+            variant="plain"
+            size="md"
+            badge={count}
+          />
+        </div>
+      </div>
 
-          {/* Carrito */}
-          <IconButton icon={ShoppingBag} label="Carrito" href="/carrito" variant="raised" size="md" badge={count} />
-
-          <LoginButton />
+      <div className="mx-auto flex max-w-7xl items-center justify-between md:hidden">
+        <Link href="/" aria-label="Kadali, inicio">
+          <Image src="/kadali-logo.svg" alt="Kadali" width={96} height={38} priority />
+        </Link>
+        <div className="flex items-center gap-0.5">
+          <IconButton
+            icon={Search}
+            label="Buscar"
+            href="/productos"
+            variant="plain"
+            size="sm"
+          />
+          <IconButton
+            icon={ShoppingBag}
+            label="Carrito"
+            href="/carrito"
+            variant="plain"
+            size="sm"
+            badge={count}
+          />
         </div>
       </div>
     </nav>
-  )
-}
-
-// Placeholder estático mientras hidrata NavSearch (usa useSearchParams)
-function SearchFallback() {
-  return (
-    <div className="hidden h-11 max-w-xl flex-1 rounded-full bg-surface shadow-sm md:block" />
   )
 }

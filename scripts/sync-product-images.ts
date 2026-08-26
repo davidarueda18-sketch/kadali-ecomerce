@@ -39,20 +39,36 @@ function validateSyncedImages(rows: Awaited<ReturnType<typeof readTargetImages>>
     const productRows = rows.filter((row) => row.productSlug === productSlug)
     const heroes = productRows.filter((row) => row.categorySlug === 'hero')
     const variants = productRows.filter((row) => row.categorySlug === 'variant')
+    const themes = productRows.filter((row) => row.categorySlug === 'background')
+    const plates = productRows.filter((row) => row.categorySlug === 'no-background')
+    const expected = PRODUCT_IMAGE_SETS[productSlug]
+    const expectedThemeCount = expected.theme ? 1 : 0
+    const expectedPlateCount = expected.plate ? 1 : 0
+    const expectedTotal =
+      1 + expected.variants.length + expectedThemeCount + expectedPlateCount
 
-    if (productRows.length !== 6 || heroes.length !== 1 || variants.length !== 5) {
+    if (
+      productRows.length !== expectedTotal ||
+      heroes.length !== 1 ||
+      variants.length !== expected.variants.length ||
+      themes.length !== expectedThemeCount ||
+      plates.length !== expectedPlateCount
+    ) {
       throw new Error(
-        `Invalid image result for ${productSlug}: ${heroes.length} hero, ${variants.length} variants, ${productRows.length} total`
+        `Invalid image result for ${productSlug}: ${heroes.length} hero, ${variants.length} variants, ${themes.length} theme, ${plates.length} plate, ${productRows.length} total`
       )
     }
 
-    const expected = PRODUCT_IMAGE_SETS[productSlug]
     const actualHero = heroes[0]?.cloudinaryPublicId
     const actualVariants = variants.map((row) => row.cloudinaryPublicId)
+    const actualTheme = themes[0]?.cloudinaryPublicId
+    const actualPlate = plates[0]?.cloudinaryPublicId
 
     if (
       actualHero !== expected.hero ||
-      actualVariants.some((publicId, position) => publicId !== expected.variants[position])
+      actualVariants.some((publicId, position) => publicId !== expected.variants[position]) ||
+      actualTheme !== expected.theme ||
+      actualPlate !== expected.plate
     ) {
       throw new Error(`Image order does not match the configured set for ${productSlug}`)
     }
@@ -68,14 +84,16 @@ async function syncProductImages() {
     db
       .select({ id: imageCategories.id, slug: imageCategories.slug })
       .from(imageCategories)
-      .where(inArray(imageCategories.slug, ['hero', 'variant'])),
+      .where(
+        inArray(imageCategories.slug, ['hero', 'variant', 'background', 'no-background'])
+      ),
     readTargetImages(),
   ])
 
   const missingProducts = targetSlugs.filter(
     (slug) => !productRows.some((product) => product.slug === slug)
   )
-  const missingCategories = ['hero', 'variant'].filter(
+  const missingCategories = ['hero', 'variant', 'background', 'no-background'].filter(
     (slug) => !categoryRows.some((category) => category.slug === slug)
   )
 
@@ -91,6 +109,8 @@ async function syncProductImages() {
   const categoryIdBySlug = new Map(categoryRows.map((category) => [category.slug, category.id]))
   const heroCategoryId = categoryIdBySlug.get('hero')!
   const variantCategoryId = categoryIdBySlug.get('variant')!
+  const backgroundCategoryId = categoryIdBySlug.get('background')!
+  const noBackgroundCategoryId = categoryIdBySlug.get('no-background')!
 
   const replacementImages = targetSlugs.flatMap((productSlug) => {
     const productId = productIdBySlug.get(productSlug)!
@@ -109,6 +129,26 @@ async function syncProductImages() {
         cloudinaryPublicId,
         position,
       })),
+      ...(imageSet.theme
+        ? [
+            {
+              productId,
+              imageCategoryId: backgroundCategoryId,
+              cloudinaryPublicId: imageSet.theme,
+              position: 0,
+            },
+          ]
+        : []),
+      ...(imageSet.plate
+        ? [
+            {
+              productId,
+              imageCategoryId: noBackgroundCategoryId,
+              cloudinaryPublicId: imageSet.plate,
+              position: 0,
+            },
+          ]
+        : []),
     ]
   })
 
@@ -119,7 +159,15 @@ async function syncProductImages() {
 
   console.log(`Target products: ${targetSlugs.join(', ')}`)
   console.log(`Current image rows to replace: ${currentImages.length}`)
-  console.log(`New image rows: ${replacementImages.length} (4 hero + 20 variants)`)
+  const variantCount = targetSlugs.reduce(
+    (total, slug) => total + PRODUCT_IMAGE_SETS[slug].variants.length,
+    0
+  )
+  const plateCount = targetSlugs.filter((slug) => PRODUCT_IMAGE_SETS[slug].plate).length
+  const themeCount = targetSlugs.filter((slug) => PRODUCT_IMAGE_SETS[slug].theme).length
+  console.log(
+    `New image rows: ${replacementImages.length} (${targetSlugs.length} hero + ${variantCount} variants + ${themeCount} themes + ${plateCount} plates)`
+  )
 
   if (!shouldApply) {
     console.log('Dry run complete. Run with --apply to update Neon.')
@@ -129,7 +177,7 @@ async function syncProductImages() {
   const targetProductIds = productRows.map((product) => product.id)
 
   await db.transaction(async (tx) => {
-    // El usuario solicitó reemplazar todas las fotos actuales de estas cuatro velas,
+    // El usuario solicitó reemplazar todas las fotos actuales de estas velas,
     // incluidas las categorías antiguas background/no-background.
     await tx.delete(productImages).where(inArray(productImages.productId, targetProductIds))
     await tx.insert(productImages).values(replacementImages)
@@ -140,7 +188,9 @@ async function syncProductImages() {
 
   for (const productSlug of targetSlugs) {
     const imageSet = PRODUCT_IMAGE_SETS[productSlug]
-    console.log(`✓ ${imageSet.name}: 1 hero + 5 variants`)
+    console.log(
+      `✓ ${imageSet.name}: 1 hero + ${imageSet.variants.length} variants${imageSet.theme ? ' + 1 theme' : ''}${imageSet.plate ? ' + 1 plate' : ''}`
+    )
   }
 
   console.log(`Neon updated and verified: ${syncedImages.length} image rows.`)

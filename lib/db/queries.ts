@@ -45,6 +45,54 @@ export async function getActiveProducts() {
     .orderBy(asc(products.id))
 }
 
+// Recortes transparentes sobre plato, usados en composiciones editoriales como el hero.
+// Se mantienen fuera de la galería del PDP para no mezclar fotos de producto con assets de layout.
+export async function getActiveProductPlates() {
+  return db
+    .select({
+      id: products.id,
+      name: products.name,
+      slug: products.slug,
+      price: products.price,
+      imagePublicId: productImages.cloudinaryPublicId,
+    })
+    .from(products)
+    .innerJoin(productImages, eq(productImages.productId, products.id))
+    .innerJoin(imageCategories, eq(imageCategories.id, productImages.imageCategoryId))
+    .where(
+      and(
+        eq(products.active, true),
+        eq(imageCategories.slug, 'no-background'),
+        eq(productImages.position, 0)
+      )
+    )
+    .orderBy(asc(products.id))
+}
+
+// Imágenes editoriales exclusivas de la portada. Se separan de `hero` para que
+// el home no reutilice las fotografías principales del catálogo o del PDP.
+export async function getActiveProductThemes() {
+  return db
+    .select({
+      id: products.id,
+      name: products.name,
+      slug: products.slug,
+      price: products.price,
+      imagePublicId: productImages.cloudinaryPublicId,
+    })
+    .from(products)
+    .innerJoin(productImages, eq(productImages.productId, products.id))
+    .innerJoin(imageCategories, eq(imageCategories.id, productImages.imageCategoryId))
+    .where(
+      and(
+        eq(products.active, true),
+        eq(imageCategories.slug, 'background'),
+        eq(productImages.position, 0)
+      )
+    )
+    .orderBy(asc(products.id))
+}
+
 export async function getCategories() {
   return db
     .select({ id: categories.id, name: categories.name, slug: categories.slug })

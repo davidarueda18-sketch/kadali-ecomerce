@@ -51,6 +51,8 @@ async function seed() {
 
   const hero = insertedImageCategories.find((c) => c.slug === 'hero')!
   const variant = insertedImageCategories.find((c) => c.slug === 'variant')!
+  const background = insertedImageCategories.find((c) => c.slug === 'background')!
+  const noBackground = insertedImageCategories.find((c) => c.slug === 'no-background')!
 
   // Products — línea de velas de postres, presentación 450 g, 90.000 COP
   const insertedProducts = await db
@@ -168,6 +170,26 @@ async function seed() {
           cloudinaryPublicId,
           position,
         })),
+        ...(imageSet.theme
+          ? [
+              {
+                productId: product.id,
+                imageCategoryId: background.id,
+                cloudinaryPublicId: imageSet.theme,
+                position: 0,
+              },
+            ]
+          : []),
+        ...(imageSet.plate
+          ? [
+              {
+                productId: product.id,
+                imageCategoryId: noBackground.id,
+                cloudinaryPublicId: imageSet.plate,
+                position: 0,
+              },
+            ]
+          : []),
       ]
     })
   )

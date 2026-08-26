@@ -22,7 +22,7 @@ export default function BottomNav() {
 
   const items: Item[] = [
     { label: 'Inicio', icon: Home, href: '/', isActive: (p) => p === '/' },
-    { label: 'Productos', icon: LayoutGrid, href: '/productos', isActive: (p) => p.startsWith('/productos') },
+    { label: 'Velas', icon: LayoutGrid, href: '/productos', isActive: (p) => p.startsWith('/productos') },
     { label: 'Carrito', icon: ShoppingBag, href: '/carrito', isActive: (p) => p.startsWith('/carrito'), badge: count },
     {
       label: 'Favoritos',
@@ -31,7 +31,16 @@ export default function BottomNav() {
       isActive: (p) => p.startsWith('/favoritos'),
       badge: favoritesCount,
     },
-    { label: 'Mas', icon: ListFilter },
+    {
+      label: 'Más',
+      icon: ListFilter,
+      href: '/mas',
+      isActive: (p) =>
+        p === '/mas' ||
+        p.startsWith('/nosotros') ||
+        p.startsWith('/cuenta') ||
+        p.startsWith('/legal'),
+    },
   ]
 
   return (
@@ -59,6 +68,7 @@ export default function BottomNav() {
               key={item.label}
               href={item.href}
               aria-label={item.label}
+              aria-current={active ? 'page' : undefined}
               className={`flex flex-1 flex-col items-center gap-0.5 py-1 transition-colors ${tone}`}
             >
               {content}

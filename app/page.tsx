@@ -1,17 +1,53 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowDown, ArrowRight, Clock3, Heart, Leaf, MapPin } from 'lucide-react'
+import {
+  ArrowDown,
+  ArrowRight,
+  BadgeCheck,
+  Camera,
+  Eye,
+  Flame,
+  Gift,
+  Heart,
+  Mail,
+  MessageSquareText,
+  PackageCheck,
+  Sparkles,
+  UtensilsCrossed,
+  Wind,
+} from 'lucide-react'
 import { cloudinaryUrl } from '@/lib/cloudinary'
 import { formatPrice } from '@/lib/format'
-import { getActiveProducts, getCategories } from '@/lib/db/queries'
+import { getActiveProducts, getActiveProductThemes } from '@/lib/db/queries'
+import HeroCompanions from '@/ui/home/hero-companions'
+import NewsletterForm from '@/ui/home/newsletter-form'
+import FavoriteButton from '@/ui/product/favorite-button'
 import styles from './home.module.css'
 
 export const metadata: Metadata = {
-  title: 'Kadali — Velas artesanales que se ven deliciosas',
+  title: 'Kadali — Objetos deliciosamente inesperados',
   description:
-    'Descubre velas artesanales inspiradas en postres y frutas. Hechas en Colombia con cera de soya y mucho detalle.',
+    'Velas artesanales inspiradas en postres y frutas, hechas en Colombia para regalar y transformar tus espacios.',
 }
+
+const PRODUCT_ORDER = [
+  'vida-fresastica',
+  'dulce-delito',
+  'mera-mora',
+  'limalaya',
+  'sand-ia',
+]
+
+const PRODUCT_CARD_ORDER = [
+  'limalaya',
+  'vida-fresastica',
+  'sand-ia',
+  'mera-mora',
+  'dulce-delito',
+]
+
+const HOME_HERO_ORDER = ['sand-ia', 'mera-mora', 'dulce-delito', 'limalaya']
 
 const PRODUCT_NOTES: Record<
   string,
@@ -20,74 +56,118 @@ const PRODUCT_NOTES: Record<
   limalaya: {
     label: 'Cítrica',
     note: 'Lima · fresca y brillante',
-    accent: 'bg-[#dfe8a7]',
+    accent: '#dfe8a7',
   },
   'vida-fresastica': {
     label: 'Frutal',
     note: 'Fresa · dulce y vibrante',
-    accent: 'bg-[#f4c0bd]',
+    accent: '#f4c0bd',
   },
   'sand-ia': {
     label: 'Refrescante',
     note: 'Sandía · jugosa y alegre',
-    accent: 'bg-[#cbdc9a]',
+    accent: '#cbdc9a',
   },
   'mera-mora': {
     label: 'Intensa',
     note: 'Mora · suave y envolvente',
-    accent: 'bg-[#d9b9ce]',
+    accent: '#d9b9ce',
+  },
+  'dulce-delito': {
+    label: 'Golosa',
+    note: 'Chocolate · intensa y cremosa',
+    accent: '#c89a7b',
   },
 }
 
 const BENEFITS = [
-  { icon: Leaf, label: 'Cera de soya', detail: 'Una combustión más limpia' },
-  { icon: Heart, label: 'Hechas a mano', detail: 'Cada detalle es único' },
-  { icon: Clock3, label: 'Hasta 84 horas', detail: 'Para disfrutar sin prisa' },
-  { icon: MapPin, label: 'Hechas en Colombia', detail: 'Diseño y producción local' },
+  {
+    icon: UtensilsCrossed,
+    label: 'No te la comas',
+    detail: 'Aunque entendemos la confusión.',
+  },
+  {
+    icon: Flame,
+    label: 'Sí, prende de verdad',
+    detail: 'Bonita, aromática y funcional.',
+  },
+  {
+    icon: Wind,
+    label: 'Huele a antojo',
+    detail: 'Sin ensuciar ningún plato.',
+  },
+  {
+    icon: Eye,
+    label: 'Difícil de ignorar',
+    detail: 'Ese es precisamente el punto.',
+  },
 ]
 
-function productNote(slug: string) {
-  return (
-    PRODUCT_NOTES[slug] ?? {
-      label: 'Artesanal',
-      note: 'Un aroma para disfrutar',
-      accent: 'bg-petal-100',
-    }
-  )
-}
+const HOME_IMAGES = {
+  strawberryDetail: 'ChatGPT_Image_13_ago_2026_12_30_01_bkbzr8',
+  strawberryHand: 'ChatGPT_Image_13_ago_2026_12_55_13_qmeemb',
+  strawberryEditorial: 'ChatGPT_Image_13_ago_2026_12_14_15_eoladx',
+  chocolateEditorial: 'Choco_theme_qywj68',
+  limeEditorial: 'ChatGPT_Image_13_ago_2026_12_38_12_pz8b1d',
+  berryEditorial: 'ChatGPT_Image_13_ago_2026_12_01_29_dkyvxb',
+  berryClose: 'ChatGPT_Image_13_ago_2026_12_34_08_hgizto',
+  watermelonEditorial: 'ChatGPT_Image_13_ago_2026_12_35_36_rpflku',
+} as const
+
+const SPACE_CARDS = [
+  { src: '/images/kadali-home-interior.png', label: 'Mesa auxiliar', local: true },
+  { src: HOME_IMAGES.chocolateEditorial, label: 'Biblioteca' },
+  { src: HOME_IMAGES.strawberryHand, label: 'Escritorio' },
+  { src: HOME_IMAGES.berryEditorial, label: 'Tocador' },
+]
+
+const SOCIAL_IMAGES = [
+  HOME_IMAGES.strawberryEditorial,
+  HOME_IMAGES.chocolateEditorial,
+  HOME_IMAGES.limeEditorial,
+  HOME_IMAGES.watermelonEditorial,
+  HOME_IMAGES.berryClose,
+]
 
 export default async function HomePage() {
-  const [products, categories] = await Promise.all([
+  const [products, themeProducts] = await Promise.all([
     getActiveProducts(),
-    getCategories(),
+    getActiveProductThemes(),
   ])
+  const collection = PRODUCT_ORDER.map((slug) =>
+    products.find((product) => product.slug === slug)
+  ).filter((product): product is (typeof products)[number] => Boolean(product))
+  const productCards = PRODUCT_CARD_ORDER.map((slug) =>
+    products.find((product) => product.slug === slug)
+  ).filter((product): product is (typeof products)[number] => Boolean(product))
+  const heroCollection = HOME_HERO_ORDER.map((slug) =>
+    themeProducts.find((product) => product.slug === slug)
+  ).filter(
+    (product): product is (typeof themeProducts)[number] => Boolean(product)
+  )
 
-  const collection = products.slice(0, 4)
-  const heroProduct =
-    collection.find((product) => product.slug === 'vida-fresastica') ?? collection[0]
-  const heroCompanions = collection.filter((product) => product.id !== heroProduct?.id)
-  const storyPrimary =
-    collection.find((product) => product.slug === 'sand-ia') ?? collection[0]
-  const storySecondary =
-    collection.find((product) => product.slug === 'mera-mora') ?? collection[1]
-  const collectionHref = categories[0]
-    ? `/productos?cat=${categories[0].slug}`
-    : '/productos'
+  const heroProduct = heroCollection[0] ?? collection[0]
+  const heroCompanions = (heroCollection.length > 0 ? heroCollection : collection).filter(
+    (product) => product.id !== heroProduct?.id
+  )
 
   return (
     <div className={styles.page}>
-      <section className={styles.hero}>
+      <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroHalo} aria-hidden />
         <div className="relative z-10 mx-auto grid min-h-svh max-w-7xl items-center gap-x-12 gap-y-10 px-5 pb-12 pt-28 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:grid-rows-[auto_auto] lg:gap-x-16 lg:gap-y-0 lg:px-12 lg:pb-16 lg:pt-28">
           <div className="max-w-2xl lg:col-start-1 lg:row-start-1 lg:self-end">
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#d9c7ba] bg-white/55 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.19em] text-[#694b50] backdrop-blur-sm">
               <span className="size-1.5 rounded-full bg-brand" aria-hidden />
-              Velas artesanales · Colombia
+              ¿Te la vas a comer?
             </div>
 
-            <h1 className="font-heading text-[clamp(3.65rem,8vw,7.4rem)] font-semibold leading-[0.82] tracking-[-0.055em] text-[#3c2830]">
-              Enciende
-              <span className="block text-brand">el antojo.</span>
+            <h1
+              id="hero-title"
+              className="font-heading text-[clamp(3.65rem,8vw,7.4rem)] font-semibold leading-[0.82] tracking-[-0.055em] text-[#3c2830]"
+            >
+              Esto no es
+              <span className="block text-brand">un postre.</span>
             </h1>
           </div>
 
@@ -111,7 +191,7 @@ export default async function HomePage() {
                   <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5 text-white sm:p-7">
                     <div>
                       <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">
-                        Aroma destacado
+                        Sí. Es una vela.
                       </span>
                       <h2 className="mt-1 font-heading text-2xl font-semibold sm:text-3xl">
                         {heroProduct.name}
@@ -123,47 +203,18 @@ export default async function HomePage() {
                   </div>
                 </Link>
 
-                <div className="grid grid-rows-3 gap-3 sm:gap-4">
-                  {heroCompanions.slice(0, 3).map((product, index) => (
-                    <Link
-                      key={product.id}
-                      href={`/productos/${product.slug}`}
-                      aria-label={`Ver ${product.name}`}
-                      className={`${styles.heroThumb} group relative overflow-hidden rounded-[1.25rem] bg-white shadow-[0_14px_35px_rgba(87,53,38,0.14)] sm:rounded-[1.75rem]`}
-                      style={{ animationDelay: `${index * 180}ms` }}
-                    >
-                      <Image
-                        src={cloudinaryUrl(product.imagePublicId, 360)}
-                        alt={product.name}
-                        fill
-                        sizes="(max-width: 640px) 76px, 120px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <span className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/35 to-transparent" />
-                      <span className="absolute bottom-2 left-1/2 size-2 -translate-x-1/2 rounded-full bg-white shadow sm:bottom-3" />
-                    </Link>
-                  ))}
-                </div>
+                <HeroCompanions products={heroCompanions.slice(0, 3)} />
               </div>
 
               <div className="absolute -left-4 top-10 hidden -rotate-6 rounded-full border border-white/80 bg-white/80 px-4 py-2 text-xs font-bold text-[#593a45] shadow-lg backdrop-blur-md sm:block lg:-left-12">
-                Se ven deliciosas ✦
-              </div>
-              <div className="absolute -bottom-5 right-16 rounded-2xl border border-white/70 bg-white/80 px-4 py-3 shadow-xl backdrop-blur-md sm:right-24 sm:px-5">
-                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8a7770]">
-                  Desde
-                </p>
-                <p className="font-heading text-lg font-semibold text-[#3c2830]">
-                  {formatPrice(heroProduct.price)}
-                </p>
+                Se ve deliciosa ✦
               </div>
             </div>
           )}
 
           <div className="max-w-2xl lg:col-start-1 lg:row-start-2 lg:self-start">
             <p className="max-w-lg text-base leading-7 text-[#6f615c] sm:text-lg sm:leading-8 lg:mt-8">
-              Parecen postres, pero iluminan tus espacios. Velas de soya hechas a
-              mano para llenar la casa de color, aroma y pequeños momentos felices.
+              Aunque tenemos nuestras dudas.
             </p>
 
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -171,17 +222,17 @@ export default async function HomePage() {
                 href="/productos"
                 className="group inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[#442a36] px-7 text-sm font-bold text-white shadow-[0_12px_30px_rgba(68,42,54,0.18)] transition hover:-translate-y-0.5 hover:bg-brand-deep focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
               >
-                Descubrir la colección
+                Quiero verlas
                 <ArrowRight
                   aria-hidden
                   className="size-4 transition-transform group-hover:translate-x-1"
                 />
               </Link>
               <Link
-                href="#coleccion"
+                href="#antojos"
                 className="inline-flex min-h-13 items-center justify-center gap-3 rounded-full border border-[#cdbeb3] bg-white/45 px-7 text-sm font-bold text-[#4d383e] transition hover:border-brand hover:bg-white/75 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
               >
-                Conocer los aromas
+                Descubrir los aromas
                 <ArrowDown aria-hidden className="size-4" />
               </Link>
             </div>
@@ -194,13 +245,15 @@ export default async function HomePage() {
                 </dd>
               </div>
               <div className="border-x border-[#d8c9bf] px-5">
-                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">84 h</dt>
+                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">100 %</dt>
                 <dd className="mt-1 text-[11px] uppercase tracking-wider text-[#80716c]">
-                  de duración
+                  cera de soya
                 </dd>
               </div>
               <div className="pl-5">
-                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">4</dt>
+                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">
+                  {collection.length}
+                </dt>
                 <dd className="mt-1 text-[11px] uppercase tracking-wider text-[#80716c]">
                   aromas
                 </dd>
@@ -231,199 +284,253 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {collection.length > 0 && (
-        <section id="coleccion" className="scroll-mt-8 px-5 py-24 sm:px-8 lg:px-12 lg:py-32">
-          <div className="mx-auto max-w-7xl">
-            <div className="mb-12 flex flex-col gap-6 sm:mb-16 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl">
-                <p className="mb-4 text-xs font-bold uppercase tracking-[0.22em] text-brand">
-                  La colección frutal
-                </p>
-                <h2 className="font-heading text-4xl font-semibold leading-[0.95] tracking-[-0.035em] text-[#3c2830] sm:text-5xl lg:text-6xl">
-                  Cuatro formas de ponerle
-                  <span className="text-brand"> sabor al ambiente.</span>
-                </h2>
-              </div>
-              <Link
-                href="/productos"
-                className="group inline-flex w-fit items-center gap-2 border-b border-[#6f5a60] pb-1 text-sm font-bold text-[#4c383f] transition hover:border-brand hover:text-brand"
-              >
-                Ver todo el catálogo
-                <ArrowRight
-                  aria-hidden
-                  className="size-4 transition-transform group-hover:translate-x-1"
-                />
-              </Link>
-            </div>
+      {productCards.length > 0 && (
+        <section id="antojos" className={styles.productsSection} aria-labelledby="products-title">
+          <div className={styles.sectionHeadingRow}>
+            <h2 id="products-title" className={styles.sectionTitle}>
+              Escoge tu antojo.
+            </h2>
+            <Link href="/productos" className={styles.textLink}>
+              Ver todas las velas <ArrowRight aria-hidden />
+            </Link>
+          </div>
 
-            <ol className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
-              {collection.map((product, index) => {
-                const note = productNote(product.slug)
+          <ol className={styles.productGrid}>
+            {productCards.map((product) => {
+              const note = PRODUCT_NOTES[product.slug] ?? {
+                label: 'Artesanal',
+                note: 'Un aroma para disfrutar',
+                accent: '#fcebee',
+              }
 
-                return (
-                  <li key={product.id}>
+              return (
+                <li key={product.id}>
+                  <article
+                    className={styles.productCard}
+                    style={{ backgroundColor: note.accent }}
+                  >
                     <Link
                       href={`/productos/${product.slug}`}
-                      className={`${styles.productCard} group block rounded-[2rem] ${note.accent} p-2.5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand`}
+                      aria-label={`Ver ${product.name}`}
+                      className={styles.productCardLink}
                     >
-                      <div className="relative aspect-[3/4] overflow-hidden rounded-[1.55rem] bg-[#ead7c4]">
+                      <div className={styles.productImage}>
                         <Image
-                          src={cloudinaryUrl(product.imagePublicId, 720)}
+                          src={cloudinaryUrl(product.imagePublicId, 700)}
                           alt={product.name}
                           fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.035]"
+                          sizes="(max-width: 640px) 82vw, (max-width: 1024px) 45vw, 25vw"
+                          className={styles.coverImage}
                         />
-                        <div className="absolute inset-x-0 top-0 flex items-center justify-between p-4">
-                          <span className="rounded-full bg-white/80 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[#4b383e] backdrop-blur-md">
-                            {note.label}
-                          </span>
-                          <span className="grid size-8 place-items-center rounded-full bg-[#442a36]/85 text-xs font-bold text-white backdrop-blur-md">
-                            {String(index + 1).padStart(2, '0')}
-                          </span>
+                        <div className={styles.productTags}>
+                          <span>{product.name}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between gap-4 px-3 pb-3 pt-5">
-                        <div>
-                          <h3 className="font-heading text-xl font-semibold text-[#35252b]">
-                            {product.name}
-                          </h3>
-                          <p className="mt-1 text-xs text-[#66575a]">{note.note}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-sm font-bold text-[#35252b]">
-                            {formatPrice(product.price)}
-                          </p>
-                          <span className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-[#705e62]">
-                            Ver <ArrowRight aria-hidden className="size-3" />
-                          </span>
+                      <div className={styles.productCardFooter}>
+                        <strong className={styles.productCardAmount}>
+                          {formatPrice(product.price)}
+                        </strong>
+                        <div className={styles.productCardAction}>
+                          <span>Ver</span>
+                          <ArrowRight aria-hidden />
                         </div>
                       </div>
                     </Link>
-                  </li>
-                )
-              })}
-            </ol>
-          </div>
+
+                    <div className={styles.productFavorite}>
+                      <FavoriteButton
+                        product={{
+                          productId: product.id,
+                          slug: product.slug,
+                          name: product.name,
+                          price: Number(product.price),
+                          imagePublicId: product.imagePublicId,
+                        }}
+                        size="sm"
+                      />
+                    </div>
+                  </article>
+                </li>
+              )
+            })}
+          </ol>
         </section>
       )}
 
-      <section className="overflow-hidden bg-[#3d2732] px-5 py-24 text-white sm:px-8 lg:px-12 lg:py-32">
-        <div className="mx-auto grid max-w-7xl items-center gap-16 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#f2b5bd]">
-              <Heart aria-hidden className="size-3.5 fill-current" />
-              El ritual Kadali
-            </span>
-            <h2 className="mt-7 font-heading text-5xl font-semibold leading-[0.9] tracking-[-0.04em] sm:text-6xl">
-              De postre
-              <span className="block text-[#ef9eaa]">a ritual.</span>
-            </h2>
-            <p className="mt-7 max-w-lg text-base leading-8 text-white/65">
-              Cada vela se construye capa por capa y se termina a mano. El resultado es
-              una pieza que transforma un rincón incluso antes de encenderla.
-            </p>
+      <section id="nosotros" className={styles.storySection} aria-labelledby="story-title">
+        <div className={styles.storyImagePrimary}>
+          <Image
+            src={cloudinaryUrl(HOME_IMAGES.strawberryDetail, 1100)}
+            alt="Detalle de vela de frutos rojos que parece un postre"
+            fill
+            sizes="(max-width: 900px) 100vw, 36vw"
+            className={styles.coverImage}
+          />
+          <h2 id="story-title">Parece postre.</h2>
+        </div>
 
-            <div className="mt-10 grid max-w-lg grid-cols-2 gap-x-8 gap-y-7 border-y border-white/10 py-8">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#ef9eaa]">
-                  01 · Mira
-                </span>
-                <p className="mt-2 text-sm leading-6 text-white/65">
-                  Una pieza decorativa con detalles que parecen reales.
-                </p>
-              </div>
-              <div>
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#ef9eaa]">
-                  02 · Enciende
-                </span>
-                <p className="mt-2 text-sm leading-6 text-white/65">
-                  Una fragancia frutal que cambia el ánimo del espacio.
-                </p>
-              </div>
+        <div className={styles.storyCopy}>
+          <p className={styles.kicker}>Pero es una vela.</p>
+          <ul>
+            <li>
+              <Heart aria-hidden />
+              <span><strong>Hechas a mano</strong> con amor y cera de soya.</span>
+            </li>
+            <li>
+              <Sparkles aria-hidden />
+              <span><strong>Aromas intensos</strong> y deliciosamente inesperados.</span>
+            </li>
+            <li>
+              <BadgeCheck aria-hidden />
+              <span><strong>Objetos decorativos</strong> que se roban todas las miradas.</span>
+            </li>
+          </ul>
+          <Link href="/productos" className={styles.smallButton}>
+            Conoce más <ArrowRight aria-hidden />
+          </Link>
+        </div>
+
+        <div className={styles.storyImageSecondary}>
+          <Image
+            src={cloudinaryUrl(HOME_IMAGES.strawberryHand, 1100)}
+            alt="Vela Kadali sostenida a mano"
+            fill
+            sizes="(max-width: 900px) 100vw, 42vw"
+            className={styles.coverImage}
+          />
+          <span>Hecha para mirar, oler y encender.</span>
+        </div>
+      </section>
+
+      <section id="espacios" className={styles.spacesSection} aria-labelledby="spaces-title">
+        <div className={styles.spacesCopy}>
+          <h2 id="spaces-title" className={styles.sectionTitle}>
+            Ponla donde todos la vean.
+          </h2>
+          <p>Los rincones aburridos no tienen por qué seguir así.</p>
+          <Link href="/productos" className={styles.smallButton}>
+            Ver ideas para mi casa <ArrowRight aria-hidden />
+          </Link>
+        </div>
+        <div className={styles.spacesGrid}>
+          {SPACE_CARDS.map((card, index) => (
+            <div
+              key={card.label}
+              className={`${styles.spaceCard} ${index === 0 ? styles.spaceCardWide : ''}`}
+            >
+              <Image
+                src={card.local ? card.src : cloudinaryUrl(card.src, 800)}
+                alt={`Vela Kadali en ${card.label.toLowerCase()}`}
+                fill
+                sizes="(max-width: 700px) 75vw, (max-width: 1100px) 40vw, 22vw"
+                className={styles.coverImage}
+              />
+              <span>{card.label}</span>
             </div>
+          ))}
+        </div>
+      </section>
 
+      <section id="regalos" className={styles.giftSection} aria-labelledby="gift-title">
+        <div className={styles.giftVisual}>
+          <Image
+            src="/images/kadali-gift-box.png"
+            alt="Vela Kadali de mora dentro de una caja de regalo rosa"
+            fill
+            sizes="(max-width: 900px) 100vw, 58vw"
+            className={styles.coverImage}
+          />
+        </div>
+        <div className={styles.giftCopy}>
+          <p className={styles.handNote}>Excepto esto.</p>
+          <h2 id="gift-title" className={styles.sectionTitle}>
+            Para la persona que ya tiene todo.
+          </h2>
+          <div className={styles.giftBenefits}>
+            <div><PackageCheck aria-hidden /><span>Empaque<br />sorprendente</span></div>
+            <div><Gift aria-hidden /><span>Lista para<br />regalar</span></div>
+            <div><MessageSquareText aria-hidden /><span>Tarjeta con<br />mensaje</span></div>
+          </div>
+          <Link href="/productos" className={styles.darkButton}>
+            Ver regalos <ArrowRight aria-hidden />
+          </Link>
+        </div>
+      </section>
+
+      <section className={styles.socialSection} aria-labelledby="social-title">
+        <div className={styles.socialIntro}>
+          <Camera aria-hidden />
+          <h2 id="social-title" className={styles.sectionTitle}>
+            Gente con buen gusto y decisiones cuestionables.
+          </h2>
+          <p>Etiqueta a @kadalivelas y apareces por aquí.</p>
+          <Link href="/productos" className={styles.outlineButton}>
+            Ver la colección <ArrowRight aria-hidden />
+          </Link>
+        </div>
+        <div className={styles.socialGrid}>
+          {SOCIAL_IMAGES.map((image, index) => (
             <Link
+              key={image}
               href="/productos"
-              className="group mt-10 inline-flex min-h-13 items-center gap-3 rounded-full bg-white px-7 text-sm font-bold text-[#3d2732] transition hover:-translate-y-0.5 hover:bg-[#f9d7dd] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              className={styles.socialCard}
+              aria-label={`Descubrir vela Kadali ${index + 1}`}
             >
-              Encuentra la tuya
-              <ArrowRight
-                aria-hidden
-                className="size-4 transition-transform group-hover:translate-x-1"
+              <Image
+                src={cloudinaryUrl(image, 620)}
+                alt="Vela artesanal Kadali inspirada en un postre"
+                fill
+                sizes="(max-width: 700px) 45vw, 18vw"
+                className={styles.coverImage}
               />
             </Link>
-          </div>
-
-          {storyPrimary && (
-            <div className={`${styles.storyVisual} relative mx-auto w-full max-w-2xl pb-14 pl-10 sm:pb-20 sm:pl-24`}>
-              <Link
-                href={`/productos/${storyPrimary.slug}`}
-                className="group relative block aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#d9b889] shadow-[0_30px_80px_rgba(0,0,0,0.28)] sm:rounded-[2.75rem]"
-              >
-                <Image
-                  src={cloudinaryUrl(storyPrimary.imagePublicId, 900)}
-                  alt={storyPrimary.name}
-                  fill
-                  sizes="(max-width: 1024px) 80vw, 44vw"
-                  className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
-                />
-              </Link>
-
-              {storySecondary && storySecondary.id !== storyPrimary.id && (
-                <Link
-                  href={`/productos/${storySecondary.slug}`}
-                  className="absolute bottom-0 left-0 aspect-[3/4] w-[38%] overflow-hidden rounded-[1.6rem] border-8 border-[#3d2732] bg-[#d9b889] shadow-2xl transition-transform duration-500 hover:-rotate-2 sm:rounded-[2rem]"
-                >
-                  <Image
-                    src={cloudinaryUrl(storySecondary.imagePublicId, 520)}
-                    alt={storySecondary.name}
-                    fill
-                    sizes="(max-width: 640px) 35vw, 240px"
-                    className="object-cover"
-                  />
-                </Link>
-              )}
-
-              <div className="absolute -right-3 top-8 hidden rounded-2xl border border-white/15 bg-white/10 px-5 py-4 backdrop-blur-xl sm:block">
-                <p className="font-heading text-2xl font-semibold">100%</p>
-                <p className="text-[10px] uppercase tracking-[0.16em] text-white/55">
-                  hecha a mano
-                </p>
-              </div>
-            </div>
-          )}
+          ))}
         </div>
       </section>
 
-      <section className="px-5 py-20 sm:px-8 lg:px-12 lg:py-28">
-        <div className={`${styles.finalCta} relative mx-auto max-w-7xl overflow-hidden rounded-[2.5rem] bg-[#dce6a7] px-6 py-16 text-center sm:px-12 sm:py-20 lg:rounded-[3.5rem] lg:py-24`}>
-          <span className="absolute -left-14 -top-20 size-52 rounded-full bg-[#f1a2ad]/65 blur-2xl" aria-hidden />
-          <span className="absolute -bottom-24 -right-10 size-64 rounded-full bg-white/50 blur-2xl" aria-hidden />
-          <div className="relative z-10 mx-auto max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#536025]">
-              Tu próximo aroma favorito
-            </p>
-            <h2 className="mt-5 font-heading text-4xl font-semibold leading-[0.95] tracking-[-0.035em] text-[#34401d] sm:text-5xl lg:text-6xl">
-              Tu rincón favorito merece oler delicioso.
-            </h2>
-            <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#5c6341] sm:text-base">
-              Explora {categories[0]?.name?.toLowerCase() ?? 'nuestra colección'} y elige
-              la vela que mejor combina con tu mood.
-            </p>
-            <Link
-              href={collectionHref}
-              className="group mt-9 inline-flex min-h-13 items-center gap-3 rounded-full bg-[#3d2732] px-8 text-sm font-bold text-white shadow-xl transition hover:-translate-y-0.5 hover:bg-brand-deep focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#3d2732]"
-            >
-              Elegir mi aroma
-              <ArrowRight
-                aria-hidden
-                className="size-4 transition-transform group-hover:translate-x-1"
-              />
-            </Link>
-          </div>
+      <section className={styles.newsletterSection} aria-labelledby="newsletter-title">
+        <div>
+          <Mail aria-hidden />
+          <h2 id="newsletter-title">Correos ricos.<br />Cero spam aburrido.</h2>
+        </div>
+        <div className={styles.newsletterCopy}>
+          <p>Novedades, lanzamientos y cosas deliciosas.</p>
+          <NewsletterForm />
         </div>
       </section>
+
+      <footer className={styles.footer}>
+        <div className={styles.footerBrand}>
+          <Image src="/kadali-logo.svg" alt="Kadali" width={126} height={52} />
+          <p>Objetos deliciosamente inesperados para casas que se niegan a ser aburridas.</p>
+          <span>© Kadali {new Date().getFullYear()}</span>
+        </div>
+        <div>
+          <h3>Comprar</h3>
+          <Link href="/productos">Velas</Link>
+          <Link href="#regalos">Regalos</Link>
+          <Link href="/productos">Todos los productos</Link>
+        </div>
+        <div>
+          <h3>Ayuda</h3>
+          <Link href="/checkout">Envíos</Link>
+          <Link href="/legal/devoluciones">Cuidados y devoluciones</Link>
+          <Link href="/legal/terminos">Preguntas frecuentes</Link>
+        </div>
+        <div>
+          <h3>Síguenos</h3>
+          <span>Instagram</span>
+          <span>TikTok</span>
+          <span>Pinterest</span>
+        </div>
+        <div className={styles.footerNote}>
+          <p>Seguimos haciendo velas que parecen comida.</p>
+          <div>
+            <Link href="/legal/terminos">Términos y condiciones</Link>
+            <Link href="/legal/privacidad">Política de privacidad</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
