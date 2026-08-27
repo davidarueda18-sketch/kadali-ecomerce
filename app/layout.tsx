@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { nunitoSans, fredoka } from "@/ui/layout/fonts";
+import { caveat, fredoka, nunitoSans } from "@/ui/layout/fonts";
 import { CartProvider } from "@/lib/cart";
 import { FavoritesProvider } from "@/lib/favorites";
 import SiteChrome from "@/ui/layout/site-chrome";
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${nunitoSans.variable} ${fredoka.variable} h-full antialiased`}
+      className={`${nunitoSans.variable} ${fredoka.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
         <FavoritesProvider>

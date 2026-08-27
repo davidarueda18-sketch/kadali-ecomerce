@@ -1,12 +1,14 @@
 'use client'
 
+import { Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Search, ShoppingBag } from 'lucide-react'
+import { ShoppingBag } from 'lucide-react'
 import { useCart } from '@/lib/cart'
 import IconButton from '@/ui/common/icon-button'
 import LoginButton from '@/ui/layout/login-button'
+import NavSearch from '@/ui/layout/nav-search'
 
 const NAV_ITEMS = [
   {
@@ -70,13 +72,9 @@ export default function Nav() {
         </Link>
 
         <div className="flex items-center justify-end gap-1">
-          <IconButton
-            icon={Search}
-            label="Buscar"
-            href="/productos"
-            variant="plain"
-            size="md"
-          />
+          <Suspense fallback={<SearchFallback layout="desktop" />}>
+            <NavSearch layout="desktop" />
+          </Suspense>
           <LoginButton compact />
           <IconButton
             icon={ShoppingBag}
@@ -90,17 +88,13 @@ export default function Nav() {
       </div>
 
       <div className="mx-auto flex max-w-7xl items-center justify-between md:hidden">
-        <Link href="/" aria-label="Kadali, inicio">
+        <Link href="/" aria-label="Kadali, inicio" className="shrink-0">
           <Image src="/kadali-logo.svg" alt="Kadali" width={96} height={38} priority />
         </Link>
-        <div className="flex items-center gap-0.5">
-          <IconButton
-            icon={Search}
-            label="Buscar"
-            href="/productos"
-            variant="plain"
-            size="sm"
-          />
+        <div className="ml-3 flex min-w-0 flex-1 items-center justify-end gap-0.5">
+          <Suspense fallback={<SearchFallback layout="mobile" />}>
+            <NavSearch layout="mobile" />
+          </Suspense>
           <IconButton
             icon={ShoppingBag}
             label="Carrito"
@@ -113,4 +107,14 @@ export default function Nav() {
       </div>
     </nav>
   )
+}
+
+function SearchFallback({ layout }: { layout: 'desktop' | 'mobile' }) {
+  if (layout === 'desktop') {
+    return (
+      <div className="h-11 w-44 rounded-full bg-surface shadow-sm lg:w-60 xl:w-72" />
+    )
+  }
+
+  return <div className="size-9 shrink-0 rounded-full bg-surface shadow-sm" />
 }

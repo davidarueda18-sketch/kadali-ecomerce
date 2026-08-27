@@ -10,6 +10,7 @@ const NO_CHROME_ROUTES = ['/acceso']
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const hideChrome = NO_CHROME_ROUTES.includes(pathname)
+  const isHomePage = pathname === '/'
 
   if (hideChrome) {
     return <main className="flex-1">{children}</main>
@@ -18,7 +19,9 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
   return (
     <>
       <Nav />
-      <main className="flex-1 pb-24 md:pb-0">{children}</main>
+      <main className={`flex-1 md:pb-0 ${isHomePage ? 'pb-0' : 'pb-24'}`}>
+        {children}
+      </main>
       <BottomNav />
     </>
   )

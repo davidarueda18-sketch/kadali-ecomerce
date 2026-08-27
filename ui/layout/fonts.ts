@@ -1,4 +1,4 @@
-import { Nunito_Sans, Fredoka } from "next/font/google";
+import { Caveat, Fredoka, Nunito_Sans } from "next/font/google";
 
 export const nunitoSans = Nunito_Sans({
   variable: "--font-nunito-sans",
@@ -9,6 +9,13 @@ export const nunitoSans = Nunito_Sans({
 
 export const fredoka = Fredoka({
   variable: "--font-fredoka",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+export const caveat = Caveat({
+  variable: "--font-caveat",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",

@@ -66,7 +66,7 @@ export default function FeaturedSlider({
       role="region"
       aria-roledescription="carrusel"
       aria-label={title}
-      className={`relative min-h-105 max-w-130 overflow-hidden rounded-3xl lg:h-full lg:min-h-0 ${className}`}
+      className={`relative min-h-[32rem] max-w-130 overflow-hidden rounded-3xl md:min-h-[36rem] lg:h-full lg:min-h-0 ${className}`}
     >
       {/* Fondo con crossfade según la diapositiva activa */}
       <div className="absolute inset-0">
@@ -104,7 +104,7 @@ export default function FeaturedSlider({
             role="group"
             aria-roledescription="diapositiva"
             aria-label={`${i + 1} de ${n}`}
-            className="flex w-full shrink-0 snap-center items-center justify-center px-4 pb-20 pt-14"
+            className="flex w-full shrink-0 snap-center items-center justify-center px-4 pb-20 pt-16 md:px-6 md:pb-24 md:pt-20"
           >
             <FeaturedProductCard product={p} />
           </div>

@@ -18,7 +18,7 @@ export default function FilterRow({ categories, fragrances }: Props) {
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 md:flex md:gap-3">
       <IconButton
         icon={SlidersVertical}
         label={open ? 'Ocultar filtros' : 'Mostrar filtros'}
@@ -26,31 +26,30 @@ export default function FilterRow({ categories, fragrances }: Props) {
         size="sm"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="shrink-0"
+        className="col-start-1 row-start-1 shrink-0 md:col-auto md:row-auto"
       />
 
-      {/* Se abre de izquierda a derecha en la misma línea (igual que el buscador móvil).
-          FiltersBar usa min-w-max (no un valor fijo) para que su ancho nunca baje del
-          contenido natural: así, mientras este max-width animado sea menor, FiltersBar se
-          mantiene a tamaño completo y solo se revela/recorta (sin comprimir el texto de
-          precio); si usara un mínimo fijo menor al contenido real, habría un tramo de la
-          animación donde el ancho ofrecido cae entre ese mínimo y el ancho real, forzando
-          al texto a encogerse y saltar. max-h se limita al cerrar porque min-w-max en
-          FiltersBar fuerza su ancho interno incluso con max-width:0 en el padre, lo que
-          inflaría el alto de la fila.
-          p-2 -m-2: el overflow-hidden recorta hasta el borde del padding-box, así
-          que este padding le da aire a la shadow-sm de FiltersBar para que no se
-          corte por los 4 lados; el -m-2 lo compensa y deja el layout idéntico. */}
+      {/* En mobile el panel ocupa una segunda fila completa y se anima en altura.
+          Desde md conserva la apertura horizontal original mediante max-width. */}
       <div
         aria-hidden={!open}
-        className={`-m-2 overflow-hidden p-2 transition-[max-width,max-height,opacity] duration-300 ease-out ${
-          open ? 'max-w-3xl max-h-96 opacity-100' : 'pointer-events-none max-w-0 max-h-11 opacity-0'
+        className={`col-span-2 col-start-1 row-start-2 w-full overflow-hidden transition-[max-width,max-height,opacity] duration-300 ease-out md:col-auto md:row-auto md:-m-2 md:w-auto md:p-2 ${
+          open
+            ? 'max-h-96 opacity-100 md:max-w-3xl'
+            : 'pointer-events-none max-h-0 opacity-0 md:max-h-11 md:max-w-0'
         }`}
       >
-        <FiltersBar fragrances={fragrances} onClose={() => setOpen(false)} className="w-full" />
+        <FiltersBar
+          fragrances={fragrances}
+          onClose={() => setOpen(false)}
+          className="mt-3 w-full md:mt-0"
+        />
       </div>
 
-      <CategoryTabs categories={categories} className="ml-auto" />
+      <CategoryTabs
+        categories={categories}
+        className="col-start-2 row-start-1 min-w-0 md:col-auto md:row-auto md:ml-auto"
+      />
     </div>
   )
 }

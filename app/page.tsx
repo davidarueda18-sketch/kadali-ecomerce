@@ -5,21 +5,20 @@ import {
   ArrowDown,
   ArrowRight,
   BadgeCheck,
-  Camera,
   Eye,
   Flame,
-  Gift,
   Heart,
-  Mail,
-  MessageSquareText,
-  PackageCheck,
   Sparkles,
   UtensilsCrossed,
   Wind,
 } from 'lucide-react'
 import { cloudinaryUrl } from '@/lib/cloudinary'
 import { formatPrice } from '@/lib/format'
-import { getActiveProducts, getActiveProductThemes } from '@/lib/db/queries'
+import {
+  getActiveProductPlates,
+  getActiveProducts,
+  getActiveProductThemes,
+} from '@/lib/db/queries'
 import HeroCompanions from '@/ui/home/hero-companions'
 import NewsletterForm from '@/ui/home/newsletter-form'
 import FavoriteButton from '@/ui/product/favorite-button'
@@ -129,10 +128,68 @@ const SOCIAL_IMAGES = [
   HOME_IMAGES.berryClose,
 ]
 
+function WrappedBoxIcon() {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M5.5 12.5h21v14h-21zM4 8.5h24v4H4zM16 8.5v18" />
+      <path d="M16 8.5c-4.8.2-7.1-1-7.1-3 0-1.5 1.1-2.4 2.6-2.1C13.7 3.8 15 6.1 16 8.5Zm0 0c4.8.2 7.1-1 7.1-3 0-1.5-1.1-2.4-2.6-2.1C18.3 3.8 17 6.1 16 8.5Z" />
+    </svg>
+  )
+}
+
+function ReadyGiftIcon() {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M6 13h20v14H6zM4.5 9h23v4h-23zM16 9v18" />
+      <path d="M16 9c-3.7-1.2-6-3.1-5.4-5 .5-1.5 2.2-1.6 3.5-.6C15.4 4.4 16 6.6 16 9Zm0 0c3.7-1.2 6-3.1 5.4-5-.5-1.5-2.2-1.6-3.5-.6C16.6 4.4 16 6.6 16 9Z" />
+      <path d="M9 17.5h4M19 17.5h4" />
+    </svg>
+  )
+}
+
+function MessageCardIcon() {
+  return (
+    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="4.5" y="7" width="23" height="18" rx="1.5" />
+      <path d="m6 10 10 7 10-7M9 22h14" />
+      <path d="M14 12.3c.8-1.2 3.2-1.2 4 0 .8 1.4-2 3.1-2 3.1s-2.8-1.7-2-3.1Z" />
+    </svg>
+  )
+}
+
+function InstagramIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.4" cy="6.7" r="0.7" fill="currentColor" stroke="none" />
+    </svg>
+  )
+}
+
+function TikTokIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14 4v10.2a4.2 4.2 0 1 1-3.6-4.15" />
+      <path d="M14 4c.55 2.7 2.15 4.2 4.6 4.65" />
+    </svg>
+  )
+}
+
+function PinterestIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 18.5 12 8.8c.35-1.35 2.15-1.45 2.55-.2.45 1.4-.15 3.4-1.55 3.85-1.05.35-1.85-.25-2.1-1.05" />
+    </svg>
+  )
+}
+
 export default async function HomePage() {
-  const [products, themeProducts] = await Promise.all([
+  const [products, themeProducts, plateProducts] = await Promise.all([
     getActiveProducts(),
     getActiveProductThemes(),
+    getActiveProductPlates(),
   ])
   const collection = PRODUCT_ORDER.map((slug) =>
     products.find((product) => product.slug === slug)
@@ -150,13 +207,14 @@ export default async function HomePage() {
   const heroCompanions = (heroCollection.length > 0 ? heroCollection : collection).filter(
     (product) => product.id !== heroProduct?.id
   )
+  const giftProduct = plateProducts.find((product) => product.slug === 'mera-mora')
 
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroHalo} aria-hidden />
-        <div className="relative z-10 mx-auto grid min-h-svh max-w-7xl items-center gap-x-12 gap-y-10 px-5 pb-12 pt-28 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:grid-rows-[auto_auto] lg:gap-x-16 lg:gap-y-0 lg:px-12 lg:pb-16 lg:pt-28">
-          <div className="max-w-2xl lg:col-start-1 lg:row-start-1 lg:self-end">
+        <div className={`${styles.heroGrid} relative z-10 mx-auto grid min-h-svh max-w-7xl items-center gap-x-12 gap-y-10 px-5 pb-12 pt-28 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:grid-rows-[auto_auto] lg:gap-x-16 lg:gap-y-0 lg:px-12 lg:pb-16 lg:pt-28`}>
+          <div className={`${styles.heroTitleBlock} max-w-2xl lg:col-start-1 lg:row-start-1 lg:self-end`}>
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#d9c7ba] bg-white/55 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.19em] text-[#694b50] backdrop-blur-sm">
               <span className="size-1.5 rounded-full bg-brand" aria-hidden />
               ¿Te la vas a comer?
@@ -172,7 +230,7 @@ export default async function HomePage() {
           </div>
 
           {heroProduct && (
-            <div className="relative mx-auto mb-4 w-full max-w-[680px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mb-0 lg:self-center">
+            <div className={`${styles.heroVisualBlock} relative mx-auto mb-4 w-full max-w-[680px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mb-0 lg:self-center`}>
               <div className="grid grid-cols-[minmax(0,1fr)_4.75rem] gap-3 sm:grid-cols-[minmax(0,1fr)_7.5rem] sm:gap-4">
                 <Link
                   href={`/productos/${heroProduct.slug}`}
@@ -212,12 +270,12 @@ export default async function HomePage() {
             </div>
           )}
 
-          <div className="max-w-2xl lg:col-start-1 lg:row-start-2 lg:self-start">
-            <p className="max-w-lg text-base leading-7 text-[#6f615c] sm:text-lg sm:leading-8 lg:mt-8">
+          <div className={`${styles.heroCopyBlock} max-w-2xl lg:col-start-1 lg:row-start-2 lg:self-start`}>
+            <p className={`${styles.heroLead} max-w-lg text-base leading-7 text-[#6f615c] sm:text-lg sm:leading-8 lg:mt-8`}>
               Aunque tenemos nuestras dudas.
             </p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className={`${styles.heroActions} mt-9 flex flex-col gap-3 sm:flex-row`}>
               <Link
                 href="/productos"
                 className="group inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[#442a36] px-7 text-sm font-bold text-white shadow-[0_12px_30px_rgba(68,42,54,0.18)] transition hover:-translate-y-0.5 hover:bg-brand-deep focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
@@ -237,7 +295,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <dl className="mt-10 grid max-w-md grid-cols-3 border-t border-[#d8c9bf] pt-6">
+            <dl className={`${styles.heroStats} mt-10 grid max-w-md grid-cols-3 border-t border-[#d8c9bf] pt-6`}>
               <div>
                 <dt className="font-heading text-2xl font-semibold text-[#3c2830]">450 g</dt>
                 <dd className="mt-1 text-[11px] uppercase tracking-wider text-[#80716c]">
@@ -432,41 +490,57 @@ export default async function HomePage() {
       </section>
 
       <section id="regalos" className={styles.giftSection} aria-labelledby="gift-title">
-        <div className={styles.giftVisual}>
-          <Image
-            src="/images/kadali-gift-box.png"
-            alt="Vela Kadali de mora dentro de una caja de regalo rosa"
-            fill
-            sizes="(max-width: 900px) 100vw, 58vw"
-            className={styles.coverImage}
-          />
-        </div>
-        <div className={styles.giftCopy}>
-          <p className={styles.handNote}>Excepto esto.</p>
-          <h2 id="gift-title" className={styles.sectionTitle}>
-            Para la persona que ya tiene todo.
-          </h2>
-          <div className={styles.giftBenefits}>
-            <div><PackageCheck aria-hidden /><span>Empaque<br />sorprendente</span></div>
-            <div><Gift aria-hidden /><span>Lista para<br />regalar</span></div>
-            <div><MessageSquareText aria-hidden /><span>Tarjeta con<br />mensaje</span></div>
+        <div className={styles.giftInner}>
+          <div className={styles.giftIntro}>
+            <h2 id="gift-title" className={styles.sectionTitle}>
+              <span>Para la persona que</span>{' '}
+              <span>ya tiene todo.</span>
+            </h2>
+            <p className={styles.handNote}>Excepto esto.</p>
+            <Link href="/productos" className={styles.darkButton}>
+              Ver regalos <ArrowRight aria-hidden />
+            </Link>
           </div>
-          <Link href="/productos" className={styles.darkButton}>
-            Ver regalos <ArrowRight aria-hidden />
-          </Link>
+          {giftProduct && (
+            <Link
+              href={`/productos/${giftProduct.slug}`}
+              className={styles.giftVisual}
+              aria-label={`Ver ${giftProduct.name}`}
+            >
+              <Image
+                src={cloudinaryUrl(giftProduct.imagePublicId, 700)}
+                alt={`Vela ${giftProduct.name}`}
+                fill
+                sizes="(max-width: 760px) 80vw, 28vw"
+                className={styles.giftProductImage}
+              />
+            </Link>
+          )}
+          <div className={styles.giftDetails}>
+            <div className={styles.giftBenefits}>
+              <div><WrappedBoxIcon /><span>Empaque<br />sorprendente</span></div>
+              <div><ReadyGiftIcon /><span>Lista para<br />regalar</span></div>
+              <div><MessageCardIcon /><span>Tarjeta con<br />mensaje</span></div>
+            </div>
+          </div>
         </div>
       </section>
 
       <section className={styles.socialSection} aria-labelledby="social-title">
         <div className={styles.socialIntro}>
-          <Camera aria-hidden />
           <h2 id="social-title" className={styles.sectionTitle}>
-            Gente con buen gusto y decisiones cuestionables.
+            <span>Gente con buen gusto</span>{' '}
+            <span>y <strong className={styles.socialTitleAccent}>decisiones cuestionables.</strong></span>
           </h2>
           <p>Etiqueta a @kadalivelas y apareces por aquí.</p>
-          <Link href="/productos" className={styles.outlineButton}>
-            Ver la colección <ArrowRight aria-hidden />
-          </Link>
+          <a
+            href="https://www.instagram.com/kadalivelas/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className={styles.outlineButton}
+          >
+            Ver en Instagram <ArrowRight aria-hidden />
+          </a>
         </div>
         <div className={styles.socialGrid}>
           {SOCIAL_IMAGES.map((image, index) => (
@@ -490,7 +564,6 @@ export default async function HomePage() {
 
       <section className={styles.newsletterSection} aria-labelledby="newsletter-title">
         <div>
-          <Mail aria-hidden />
           <h2 id="newsletter-title">Correos ricos.<br />Cero spam aburrido.</h2>
         </div>
         <div className={styles.newsletterCopy}>
@@ -517,15 +590,22 @@ export default async function HomePage() {
           <Link href="/legal/devoluciones">Cuidados y devoluciones</Link>
           <Link href="/legal/terminos">Preguntas frecuentes</Link>
         </div>
-        <div>
+        <div className={styles.footerSocial}>
           <h3>Síguenos</h3>
-          <span>Instagram</span>
-          <span>TikTok</span>
-          <span>Pinterest</span>
+          <span><InstagramIcon />Instagram</span>
+          <span><TikTokIcon />TikTok</span>
+          <span><PinterestIcon />Pinterest</span>
         </div>
         <div className={styles.footerNote}>
-          <p>Seguimos haciendo velas que parecen comida.</p>
-          <div>
+          <Image
+            src="/images/footer-handwritten-note.png"
+            alt="Sí. Seguimos haciendo velas que parecen comida."
+            width={1942}
+            height={809}
+            sizes="(max-width: 760px) 100vw, 24rem"
+            className={styles.footerNoteImage}
+          />
+          <div className={styles.footerLegalLinks}>
             <Link href="/legal/terminos">Términos y condiciones</Link>
             <Link href="/legal/privacidad">Política de privacidad</Link>
           </div>

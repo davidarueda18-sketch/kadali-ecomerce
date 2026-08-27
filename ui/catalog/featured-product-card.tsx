@@ -34,7 +34,7 @@ export default function FeaturedProductCard({ product }: Props) {
   }
 
   return (
-    <div className="relative w-72 rounded-3xl bg-surface/70 p-5 shadow-lg backdrop-blur-md md:w-80 md:p-6 lg:w-88">
+    <div className="relative w-full max-w-72 rounded-3xl bg-surface/70 p-5 shadow-lg backdrop-blur-md md:max-w-80 md:p-6 lg:max-w-88">
       <div className="absolute right-5 top-5 z-10">
         <RatingBadge id={product.id} />
       </div>
