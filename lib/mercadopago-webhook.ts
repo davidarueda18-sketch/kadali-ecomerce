@@ -1,10 +1,30 @@
-import { InvalidWebhookSignatureError, WebhookSignatureValidator } from 'mercadopago'
+import { InvalidWebhookSignatureError, SignatureFailureReason, WebhookSignatureValidator } from 'mercadopago'
 import { webhookSignatureDiagnostics } from './webhook-diagnostics'
 
 type Dependencies = {
   getSecret: () => string | undefined
   reconcile: (paymentId: string) => Promise<{ orderStatus: string }>
   log: (event: string, details: Record<string, unknown>) => void
+}
+
+function validateSignature(request: Request, dataId: string | null, secret: string) {
+  const xSignature = request.headers.get('x-signature')
+  const xRequestId = request.headers.get('x-request-id')
+  // Verify the HMAC against the ORIGINAL timestamp. The SDK's installed version
+  // assumes milliseconds for freshness, while provider notifications may use seconds.
+  WebhookSignatureValidator.validate({ xSignature, xRequestId, dataId, secret })
+  let timestamp: string | undefined
+  for (const part of xSignature!.split(',')) {
+    const equals = part.indexOf('=')
+    if (equals >= 0 && part.slice(0, equals).trim().toLowerCase() === 'ts') {
+      timestamp = part.slice(equals + 1).trim()
+    }
+  }
+  const numericTimestamp = Number(timestamp)
+  const timestampMs = numericTimestamp < 1_000_000_000_000 ? numericTimestamp * 1000 : numericTimestamp
+  if (!Number.isSafeInteger(numericTimestamp) || Math.abs(Date.now() - timestampMs) > 300_000) {
+    throw new InvalidWebhookSignatureError(SignatureFailureReason.TimestampOutOfTolerance, xRequestId ?? undefined, timestamp)
+  }
 }
 
 export function createMercadoPagoWebhook({ getSecret, reconcile, log }: Dependencies) {
@@ -19,13 +39,7 @@ export function createMercadoPagoWebhook({ getSecret, reconcile, log }: Dependen
     const dataId = url.searchParams.get('data.id')
     const eventType = url.searchParams.get('type')
     try {
-      WebhookSignatureValidator.validate({
-        xSignature: request.headers.get('x-signature'),
-        xRequestId: requestId,
-        dataId,
-        secret,
-        toleranceSeconds: 300,
-      })
+      validateSignature(request, dataId, secret)
     } catch (error) {
       log('Mercado Pago webhook rejected', {
         ...webhookSignatureDiagnostics(request, secret),

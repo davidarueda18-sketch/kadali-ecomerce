@@ -72,6 +72,18 @@ test('webhook confirms a pending order without any browser return', async () => 
   assert.equal(f.writes, 1)
 })
 
+test('a correctly signed timestamp in seconds confirms the order', async () => {
+  const f = fixture()
+  assert.equal((await f.handler(signedRequest({ timestamp: Math.floor(Date.now() / 1000) }))).status, 200)
+  assert.equal(f.order.status, 'paid')
+})
+
+test('an expired seconds timestamp is rejected even when its HMAC is valid', async () => {
+  const f = fixture()
+  assert.equal((await f.handler(signedRequest({ timestamp: Math.floor(Date.now() / 1000) - 600 }))).status, 401)
+  assert.equal(f.writes, 0)
+})
+
 test('redelivering the same webhook does not repeat the update', async () => {
   const f = fixture()
   await f.handler(signedRequest())

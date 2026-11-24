@@ -4,8 +4,19 @@ import { WebhookSignatureValidator } from 'mercadopago'
 import { createMercadoPagoWebhook } from '../lib/mercadopago-webhook'
 import { webhookSecretFingerprint } from '../lib/webhook-diagnostics'
 
-for (const path of ['.env.development.local', '.env.local', '.env.development', '.env']) {
-  config({ path, quiet: true })
+const productionEnvironment = process.argv.includes('--production-env')
+if (productionEnvironment) {
+  // Isolated CLI process: use the explicitly chosen production secret without
+  // replacing the application's development configuration.
+  const result = config({ path: '.env.production.local', quiet: true, override: true })
+  if (!result.parsed?.MP_WEBHOOK_SECRET?.trim()) {
+    console.error('Para --production-env configura MP_WEBHOOK_SECRET en .env.production.local (archivo ignorado por Git).')
+    process.exit(1)
+  }
+} else {
+  for (const path of ['.env.development.local', '.env.local', '.env.development', '.env']) {
+    config({ path, quiet: true })
+  }
 }
 
 async function main() {

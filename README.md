@@ -65,6 +65,13 @@ Para investigar `SignatureMismatch` sin cambiar claves a ciegas:
 pnpm payments:diagnose-webhook
 ```
 
+Si local usa claves de prueba y Vercel claves productivas, es normal que las
+huellas difieran: esa comparación no demuestra que la clave productiva esté mal.
+Para comprobar producción de forma aislada, crea `.env.production.local` (ignorado
+por Git) con `MP_WEBHOOK_SECRET` copiado de Webhooks > Modo productivo de la
+aplicación correcta, y ejecuta `pnpm payments:diagnose-webhook --production-env`.
+El comando no carga las claves de desarrollo con esa opción y no modifica sus archivos.
+
 El comando valida una solicitud con el SDK y el handler locales y envía la misma
 solicitud al despliegue público como evento `diagnostic`, que se ignora después de
 validar la firma. No consulta pagos, no modifica pedidos y no cobra. Usa la hora
