@@ -88,6 +88,23 @@ la cabecera de firma completa. Un 200 en este diagnóstico solo valida la
 compatibilidad de firma local/despliegue; todavía se debe comprobar una
 notificación auténtica de Mercado Pago.
 
+Si el diagnóstico firmado pasa pero el simulador sigue dando `SignatureMismatch`,
+el rechazo también registra `signatureFingerprint`: SHA-256 del HMAC recibido,
+no el HMAC reutilizable. Con ese valor y los otros datos del mismo log se puede
+comprobar offline si el remitente firmó con una de las claves locales o con el
+ID predeterminado del simulador:
+
+```bash
+pnpm payments:inspect-signature --request-id=ID_DEL_LOG --timestamp=TS_DEL_LOG --payment-id=ID_DEL_PAGO --signature-fingerprint=HUELLA_DEL_LOG
+```
+
+Este análisis compara las claves de `.env.production.local`, `.env.development.local`
+y `.env.local`, sin imprimirlas ni enviarlas a terceros. Las variantes probadas
+son exclusivamente diagnósticas: nunca se usan para aceptar una firma inválida
+en el endpoint ni para modificar un pedido. Si ninguna coincide, el resultado
+no demuestra por sí solo un fallo del proveedor; hay que revisar la aplicación
+que envía la notificación con esa evidencia.
+
 ### Producción
 
 El cobro público requiere `MP_WEBHOOK_SECRET` antes de crear un pedido o una
