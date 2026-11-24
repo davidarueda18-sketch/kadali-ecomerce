@@ -4,9 +4,6 @@ import test from 'node:test'
 import { getCheckoutConfig } from '../lib/checkout-config'
 import { createMercadoPagoWebhook } from '../lib/mercadopago-webhook'
 import { reconcilePayment, type PaymentSnapshot, type ReconciliationOrder } from '../lib/payment-reconciliation'
-import { webhookSecretFingerprint } from '../lib/webhook-diagnostics'
-import { inspectWebhookSignature } from '../lib/inspect-webhook-signature'
-import { webhookSignatureDiagnostics } from '../lib/webhook-diagnostics'
 
 const secret = 'webhook-secret-only-for-automated-tests'
 const publicEnv = { MP_ACCESS_TOKEN: 'test-token', NEXT_PUBLIC_BASE_URL: 'https://www.kadalicandle.com', VERCEL_ENV: 'production' }
@@ -127,7 +124,7 @@ test('bad or expired signature never changes an order', async () => {
   assert.equal(f.writes, 0)
 })
 
-test('signature diagnostics identify the effective secret without logging credentials or signatures', async () => {
+test('rejected signatures are logged without credentials or reusable signatures', async () => {
   const logs: Record<string, unknown>[] = []
   const handler = createMercadoPagoWebhook({
     getSecret: () => secret,
@@ -138,38 +135,10 @@ test('signature diagnostics identify the effective secret without logging creden
   const signature = request.headers.get('x-signature')!
   assert.equal((await handler(request)).status, 401)
   assert.equal(logs[0].reason, 'SignatureMismatch')
-  assert.equal(logs[0].secretFingerprint, webhookSecretFingerprint(secret))
   assert.equal(logs[0].requestId, 'test-notification')
   assert.equal(logs[0].paymentId, '12345')
-  assert.equal(logs[0].dataIdOccurrences, 1)
   assert.ok(!JSON.stringify(logs).includes(secret))
   assert.ok(!JSON.stringify(logs).includes(signature))
-  const capture = {
-    requestId: String(logs[0].requestId), timestamp: String(logs[0].signatureTimestamp),
-    paymentId: String(logs[0].paymentId), signatureFingerprint: String(logs[0].signatureFingerprint),
-  }
-  const matches = inspectWebhookSignature(capture, [
-    { source: 'production', secret }, { source: 'test', secret: 'wrong-secret' },
-  ])
-  assert.ok(matches.some(match => match.source === 'test' && match.manifest === 'documented-payment-id'))
-  assert.ok(!matches.some(match => match.source === 'production'))
-})
-
-test('forensics can identify an incorrect simulator ID without accepting its signature', async () => {
-  const original = signedRequest({ id: '123456' })
-  const url = new URL(original.url)
-  url.searchParams.set('data.id', '191317324004')
-  const request = new Request(url, original)
-  const diagnostics = webhookSignatureDiagnostics(request, secret)
-  const matches = inspectWebhookSignature({
-    requestId: String(diagnostics.requestId), timestamp: String(diagnostics.signatureTimestamp),
-    paymentId: String(diagnostics.paymentId), signatureFingerprint: String(diagnostics.signatureFingerprint),
-  }, [{ source: 'production', secret }])
-  assert.ok(matches.some(match => match.manifest === 'simulator-default-id-123456'))
-  assert.ok(!matches.some(match => match.manifest === 'documented-payment-id'))
-  const f = fixture()
-  assert.equal((await f.handler(request)).status, 401)
-  assert.equal(f.writes, 0)
 })
 
 test('missing secret rejects notifications instead of acknowledging unprocessed payments', async () => {

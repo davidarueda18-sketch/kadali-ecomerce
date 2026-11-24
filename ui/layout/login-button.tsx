@@ -1,22 +1,57 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowUpRight, LogOut, Package, User } from 'lucide-react'
-import { signOut, useSession } from '@/lib/auth-client'
-import { displayName } from '@/lib/format'
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  ArrowUpRight,
+  LayoutDashboard,
+  LogOut,
+  Package,
+  User,
+} from "lucide-react";
+import { signOut, useSession } from "@/lib/auth-client";
+import { displayName } from "@/lib/format";
 
 type Props = {
-  className?: string
-  compact?: boolean
-}
+  className?: string;
+  compact?: boolean;
+};
 
-export default function LoginButton({ className = '', compact = false }: Props) {
-  const { data: session, isPending } = useSession()
-  const [open, setOpen] = useState(false)
-  const user = session?.user
-  const name = user ? displayName(user) : ''
+export default function LoginButton({
+  className = "",
+  compact = false,
+}: Props) {
+  const { data: session, isPending } = useSession();
+  const [open, setOpen] = useState(false);
+  const user = session?.user;
+  const name = user ? displayName(user) : "";
+  const [permission, setPermission] = useState<{
+    userId: string;
+    allowed: boolean;
+  } | null>(null);
+  const canAdminister = Boolean(
+    user && permission?.userId === user.id && permission.allowed,
+  );
+  useEffect(() => {
+    if (!open || !user?.id) return;
+    const controller = new AbortController();
+    fetch("/api/account/permissions", {
+      cache: "no-store",
+      signal: controller.signal,
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((result) => {
+        if (!controller.signal.aborted && result?.userId === user.id) {
+          setPermission({
+            userId: user.id,
+            allowed: result.canAdminister === true,
+          });
+        }
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [open, user?.id]);
 
   if (isPending) {
     if (compact) {
@@ -27,14 +62,14 @@ export default function LoginButton({ className = '', compact = false }: Props) 
         >
           <User className="size-5" strokeWidth={1.75} />
         </div>
-      )
+      );
     }
 
     return (
       <div
         className={`h-11 w-28 animate-pulse rounded-full bg-surface/60 ${className}`}
       />
-    )
+    );
   }
 
   if (!user) {
@@ -47,7 +82,7 @@ export default function LoginButton({ className = '', compact = false }: Props) 
         >
           <User className="size-5" strokeWidth={1.75} />
         </Link>
-      )
+      );
     }
 
     return (
@@ -55,12 +90,14 @@ export default function LoginButton({ className = '', compact = false }: Props) 
         href="/acceso"
         className={`inline-flex items-center gap-2.5 rounded-full bg-surface py-1.5 pl-4 pr-1.5 shadow-sm transition hover:shadow-md ${className}`}
       >
-        <span className="text-sm font-semibold text-brand-deep">Regístrate</span>
+        <span className="text-sm font-semibold text-brand-deep">
+          Regístrate
+        </span>
         <span className="grid size-8 place-items-center rounded-full bg-brand-deep text-surface">
           <ArrowUpRight className="size-4" strokeWidth={1.75} />
         </span>
       </Link>
-    )
+    );
   }
 
   if (compact) {
@@ -68,13 +105,22 @@ export default function LoginButton({ className = '', compact = false }: Props) 
       <div className="relative">
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => {
+            setPermission(null);
+            setOpen((o) => !o);
+          }}
           aria-expanded={open}
           aria-label={name}
           className={`inline-grid size-11 place-items-center overflow-hidden rounded-full text-brand-deep transition hover:bg-surface/70 ${className}`}
         >
           {user.image ? (
-            <Image src={user.image} alt="" width={32} height={32} className="size-8 rounded-full object-cover" />
+            <Image
+              src={user.image}
+              alt=""
+              width={32}
+              height={32}
+              className="size-8 rounded-full object-cover"
+            />
           ) : (
             <User className="size-5" strokeWidth={1.75} />
           )}
@@ -97,11 +143,21 @@ export default function LoginButton({ className = '', compact = false }: Props) 
                 <Package className="size-4" strokeWidth={1.75} />
                 Mis pedidos
               </Link>
+              {canAdminister && (
+                <Link
+                  href="/admin"
+                  onClick={() => setOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-brand-deep hover:bg-bg-alt"
+                >
+                  <LayoutDashboard className="size-4" strokeWidth={1.75} />
+                  Administrar Kadali
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={() => {
-                  setOpen(false)
-                  signOut()
+                  setOpen(false);
+                  signOut();
                 }}
                 className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-fg hover:bg-bg-alt"
               >
@@ -112,22 +168,33 @@ export default function LoginButton({ className = '', compact = false }: Props) 
           </>
         )}
       </div>
-    )
+    );
   }
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          setPermission(null);
+          setOpen((o) => !o);
+        }}
         aria-expanded={open}
         aria-label={name}
         className={`inline-flex items-center gap-2.5 rounded-full bg-surface py-1.5 pl-4 pr-1.5 shadow-sm transition hover:shadow-md ${className}`}
       >
-        <span className="max-w-28 truncate text-sm font-semibold text-brand-deep">{name}</span>
+        <span className="max-w-28 truncate text-sm font-semibold text-brand-deep">
+          {name}
+        </span>
         <span className="grid size-8 place-items-center overflow-hidden rounded-full bg-bg-alt text-brand-deep">
           {user.image ? (
-            <Image src={user.image} alt="" width={32} height={32} className="size-full object-cover" />
+            <Image
+              src={user.image}
+              alt=""
+              width={32}
+              height={32}
+              className="size-full object-cover"
+            />
           ) : (
             <User className="size-4" strokeWidth={1.75} />
           )}
@@ -151,11 +218,21 @@ export default function LoginButton({ className = '', compact = false }: Props) 
               <Package className="size-4" strokeWidth={1.75} />
               Mis pedidos
             </Link>
+            {canAdminister && (
+              <Link
+                href="/admin"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold text-brand-deep hover:bg-bg-alt"
+              >
+                <LayoutDashboard className="size-4" strokeWidth={1.75} />
+                Administrar Kadali
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => {
-                setOpen(false)
-                signOut()
+                setOpen(false);
+                signOut();
               }}
               className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-fg hover:bg-bg-alt"
             >
@@ -166,5 +243,5 @@ export default function LoginButton({ className = '', compact = false }: Props) 
         </>
       )}
     </div>
-  )
+  );
 }

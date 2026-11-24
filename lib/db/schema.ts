@@ -8,12 +8,12 @@ import {
   timestamp,
   unique,
   varchar,
-} from 'drizzle-orm/pg-core'
+} from "drizzle-orm/pg-core";
 
 // --- Auth (Better Auth) ---------------------------------------------------
 // IDs en `text` (no integer identity) por convención del adaptador de Better Auth.
 
-export const user = pgTable('user', {
+export const user = pgTable("user", {
   id: text().primaryKey(),
   name: text().notNull(),
   email: text().notNull().unique(),
@@ -21,9 +21,9 @@ export const user = pgTable('user', {
   image: text(),
   createdAt: timestamp().notNull(),
   updatedAt: timestamp().notNull(),
-})
+});
 
-export const session = pgTable('session', {
+export const session = pgTable("session", {
   id: text().primaryKey(),
   expiresAt: timestamp().notNull(),
   token: text().notNull().unique(),
@@ -33,16 +33,35 @@ export const session = pgTable('session', {
   userAgent: text(),
   userId: text()
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
-})
+    .references(() => user.id, { onDelete: "cascade" }),
+});
 
-export const account = pgTable('account', {
+// Deliberately outside Better Auth's user schema: no public profile update can set a role.
+export const adminAccess = pgTable("admin_access", {
+  userId: text()
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  role: varchar({ length: 30 }).notNull(),
+  grantedAt: timestamp().notNull().defaultNow(),
+  grantedBy: text().notNull(),
+  revokedAt: timestamp(),
+});
+
+export const accessEvents = pgTable("access_events", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  userId: text().notNull(),
+  action: varchar({ length: 30 }).notNull(),
+  actor: text().notNull(),
+  createdAt: timestamp().notNull().defaultNow(),
+});
+
+export const account = pgTable("account", {
   id: text().primaryKey(),
   accountId: text().notNull(),
   providerId: text().notNull(),
   userId: text()
     .notNull()
-    .references(() => user.id, { onDelete: 'cascade' }),
+    .references(() => user.id, { onDelete: "cascade" }),
   accessToken: text(),
   refreshToken: text(),
   idToken: text(),
@@ -52,43 +71,43 @@ export const account = pgTable('account', {
   password: text(),
   createdAt: timestamp().notNull(),
   updatedAt: timestamp().notNull(),
-})
+});
 
-export const verification = pgTable('verification', {
+export const verification = pgTable("verification", {
   id: text().primaryKey(),
   identifier: text().notNull(),
   value: text().notNull(),
   expiresAt: timestamp().notNull(),
   createdAt: timestamp(),
   updatedAt: timestamp(),
-})
+});
 
 // Contadores del rate limit de Better Auth. En serverless cada invocación arranca
 // con su propia memoria, así que el almacenamiento en memoria (el de por defecto)
 // no limita nada real; hay que persistirlo. `key` es único porque el adaptador
 // hace un UPDATE condicional sobre esa columna para contar de forma atómica.
-export const rateLimit = pgTable('rateLimit', {
+export const rateLimit = pgTable("rateLimit", {
   id: text().primaryKey(),
   key: text().notNull().unique(),
   count: integer().notNull(),
-  lastRequest: bigint({ mode: 'number' }).notNull(), // epoch en ms, no cabe en integer
-})
+  lastRequest: bigint({ mode: "number" }).notNull(), // epoch en ms, no cabe en integer
+});
 
-export const categories = pgTable('categories', {
+export const categories = pgTable("categories", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 100 }).notNull(),
   slug: varchar({ length: 100 }).notNull().unique(),
-})
+});
 
 // Categorías de imagen (hero, variante, …) — extensible
-export const imageCategories = pgTable('image_categories', {
+export const imageCategories = pgTable("image_categories", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 100 }).notNull(),
   slug: varchar({ length: 100 }).notNull().unique(),
   sortOrder: integer().notNull().default(0),
-})
+});
 
-export const products = pgTable('products', {
+export const products = pgTable("products", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   name: varchar({ length: 255 }).notNull(),
   slug: varchar({ length: 255 }).notNull().unique(),
@@ -98,15 +117,15 @@ export const products = pgTable('products', {
   categoryId: integer().references(() => categories.id),
   active: boolean().notNull().default(true),
   createdAt: timestamp().defaultNow().notNull(),
-})
+});
 
 // Ficha técnica 1:1 de cada vela (fragancia filtrable + especificaciones)
-export const productDetails = pgTable('product_details', {
+export const productDetails = pgTable("product_details", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   productId: integer()
     .notNull()
     .unique()
-    .references(() => products.id, { onDelete: 'cascade' }),
+    .references(() => products.id, { onDelete: "cascade" }),
   fragrance: varchar({ length: 100 }).notNull(),
   fragranceSlug: varchar({ length: 100 }).notNull(),
   weightGrams: integer().notNull(),
@@ -116,25 +135,25 @@ export const productDetails = pgTable('product_details', {
   heightCm: numeric({ precision: 5, scale: 2 }),
   diameterCm: numeric({ precision: 5, scale: 2 }),
   careInstructions: text(),
-})
+});
 
 export const productImages = pgTable(
-  'product_images',
+  "product_images",
   {
     id: integer().primaryKey().generatedAlwaysAsIdentity(),
     productId: integer()
       .notNull()
-      .references(() => products.id, { onDelete: 'cascade' }),
+      .references(() => products.id, { onDelete: "cascade" }),
     imageCategoryId: integer()
       .notNull()
       .references(() => imageCategories.id),
     cloudinaryPublicId: varchar({ length: 500 }).notNull(),
     position: integer().notNull().default(0),
   },
-  (t) => [unique().on(t.productId, t.imageCategoryId, t.position)]
-)
+  (t) => [unique().on(t.productId, t.imageCategoryId, t.position)],
+);
 
-export const orders = pgTable('orders', {
+export const orders = pgTable("orders", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   orderNumber: varchar({ length: 20 }).notNull().unique(),
   // Nulo para pedidos de invitado; se vincula al registrarse con el mismo correo (ver lib/auth.ts)
@@ -145,17 +164,23 @@ export const orders = pgTable('orders', {
   address: varchar({ length: 500 }).notNull(),
   city: varchar({ length: 100 }).notNull(),
   zipCode: varchar({ length: 10 }),
-  country: varchar({ length: 100 }).notNull().default('Colombia'),
+  country: varchar({ length: 100 }).notNull().default("Colombia"),
   subtotal: numeric({ precision: 10, scale: 2 }).notNull(),
-  shippingCost: numeric({ precision: 10, scale: 2 }).notNull().default('0'),
+  shippingCost: numeric({ precision: 10, scale: 2 }).notNull().default("0"),
   total: numeric({ precision: 10, scale: 2 }).notNull(),
   // 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
-  status: varchar({ length: 50 }).notNull().default('pending'),
+  status: varchar({ length: 50 }).notNull().default("pending"),
   notes: text(),
+  paidAt: timestamp(),
+  fulfillmentStatus: varchar({ length: 30 }).notNull().default("unfulfilled"),
+  carrier: varchar({ length: 100 }),
+  trackingNumber: varchar({ length: 150 }),
+  trackingUrl: varchar({ length: 1000 }),
+  stockDeducted: boolean().notNull().default(false),
   createdAt: timestamp().defaultNow().notNull(),
-})
+});
 
-export const orderItems = pgTable('order_items', {
+export const orderItems = pgTable("order_items", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   orderId: integer()
     .notNull()
@@ -165,4 +190,14 @@ export const orderItems = pgTable('order_items', {
   unitPrice: numeric({ precision: 10, scale: 2 }).notNull(),
   quantity: integer().notNull(),
   subtotal: numeric({ precision: 10, scale: 2 }).notNull(),
-})
+});
+
+export const adminEvents = pgTable("admin_events", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  entityType: varchar({ length: 30 }).notNull(),
+  entityId: integer().notNull(),
+  actor: text().notNull(),
+  action: varchar({ length: 100 }).notNull(),
+  detail: text().notNull(),
+  createdAt: timestamp().defaultNow().notNull(),
+});

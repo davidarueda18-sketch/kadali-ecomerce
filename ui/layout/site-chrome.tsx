@@ -9,7 +9,7 @@ const NO_CHROME_ROUTES = ['/acceso']
 
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const hideChrome = NO_CHROME_ROUTES.includes(pathname)
+  const hideChrome = NO_CHROME_ROUTES.includes(pathname) || pathname.startsWith('/admin')
   const isHomePage = pathname === '/'
 
   if (hideChrome) {

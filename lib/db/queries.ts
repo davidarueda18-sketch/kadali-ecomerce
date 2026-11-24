@@ -1,5 +1,17 @@
-import { and, asc, desc, eq, gte, ilike, inArray, lte } from 'drizzle-orm'
-import { db } from '.'
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gte,
+  ilike,
+  inArray,
+  lte,
+  isNotNull,
+  or,
+  sql,
+} from "drizzle-orm";
+import { db } from ".";
 import {
   categories,
   imageCategories,
@@ -8,18 +20,18 @@ import {
   productDetails,
   products,
   productImages,
-} from './schema'
-import type { CatalogFilters } from '../catalog/filters'
+} from "./schema";
+import type { CatalogFilters } from "../catalog/filters";
 
 // Categorías de imagen relevantes para la galería del PDP (excluye las de uso interno
 // del FeaturedSlider: background/no-background)
-const GALLERY_IMAGE_CATEGORY_SLUGS = ['hero', 'variant']
+const GALLERY_IMAGE_CATEGORY_SLUGS = ["hero", "variant"];
 
 // Subconsulta: ids de la categoría de imagen "hero"
 const heroCategoryIds = db
   .select({ id: imageCategories.id })
   .from(imageCategories)
-  .where(eq(imageCategories.slug, 'hero'))
+  .where(eq(imageCategories.slug, "hero"));
 
 // Productos activos que sí tienen una imagen hero principal. El INNER JOIN evita
 // enviar al front productos sin una imagen real en Cloudinary.
@@ -38,11 +50,11 @@ export async function getActiveProducts() {
       and(
         eq(productImages.productId, products.id),
         inArray(productImages.imageCategoryId, heroCategoryIds),
-        eq(productImages.position, 0)
-      )
+        eq(productImages.position, 0),
+      ),
     )
     .where(eq(products.active, true))
-    .orderBy(asc(products.id))
+    .orderBy(asc(products.id));
 }
 
 // Recortes transparentes sobre plato, usados en composiciones editoriales como el hero.
@@ -58,15 +70,18 @@ export async function getActiveProductPlates() {
     })
     .from(products)
     .innerJoin(productImages, eq(productImages.productId, products.id))
-    .innerJoin(imageCategories, eq(imageCategories.id, productImages.imageCategoryId))
+    .innerJoin(
+      imageCategories,
+      eq(imageCategories.id, productImages.imageCategoryId),
+    )
     .where(
       and(
         eq(products.active, true),
-        eq(imageCategories.slug, 'no-background'),
-        eq(productImages.position, 0)
-      )
+        eq(imageCategories.slug, "no-background"),
+        eq(productImages.position, 0),
+      ),
     )
-    .orderBy(asc(products.id))
+    .orderBy(asc(products.id));
 }
 
 // Imágenes editoriales exclusivas de la portada. Se separan de `hero` para que
@@ -82,22 +97,25 @@ export async function getActiveProductThemes() {
     })
     .from(products)
     .innerJoin(productImages, eq(productImages.productId, products.id))
-    .innerJoin(imageCategories, eq(imageCategories.id, productImages.imageCategoryId))
+    .innerJoin(
+      imageCategories,
+      eq(imageCategories.id, productImages.imageCategoryId),
+    )
     .where(
       and(
         eq(products.active, true),
-        eq(imageCategories.slug, 'background'),
-        eq(productImages.position, 0)
-      )
+        eq(imageCategories.slug, "background"),
+        eq(productImages.position, 0),
+      ),
     )
-    .orderBy(asc(products.id))
+    .orderBy(asc(products.id));
 }
 
 export async function getCategories() {
   return db
     .select({ id: categories.id, name: categories.name, slug: categories.slug })
     .from(categories)
-    .orderBy(asc(categories.name))
+    .orderBy(asc(categories.name));
 }
 
 // Fragancias distintas de productos activos (para el filtro de catálogo)
@@ -110,13 +128,20 @@ export async function getFragrances() {
     .from(productDetails)
     .innerJoin(products, eq(products.id, productDetails.productId))
     .where(eq(products.active, true))
-    .orderBy(asc(productDetails.fragrance))
+    .orderBy(asc(productDetails.fragrance));
 }
 
 export async function getCatalogProducts(filters: CatalogFilters = {}) {
-  const { categorySlugs, fragranceSlugs, minPrice, maxPrice, sort = 'new', q } = filters
+  const {
+    categorySlugs,
+    fragranceSlugs,
+    minPrice,
+    maxPrice,
+    sort = "new",
+    q,
+  } = filters;
 
-  const conditions = [eq(products.active, true)]
+  const conditions = [eq(products.active, true)];
 
   if (categorySlugs && categorySlugs.length > 0) {
     conditions.push(
@@ -125,9 +150,9 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
         db
           .select({ id: categories.id })
           .from(categories)
-          .where(inArray(categories.slug, categorySlugs))
-      )
-    )
+          .where(inArray(categories.slug, categorySlugs)),
+      ),
+    );
   }
 
   if (fragranceSlugs && fragranceSlugs.length > 0) {
@@ -137,29 +162,29 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
         db
           .select({ id: productDetails.productId })
           .from(productDetails)
-          .where(inArray(productDetails.fragranceSlug, fragranceSlugs))
-      )
-    )
+          .where(inArray(productDetails.fragranceSlug, fragranceSlugs)),
+      ),
+    );
   }
 
   if (minPrice !== undefined) {
-    conditions.push(gte(products.price, String(minPrice)))
+    conditions.push(gte(products.price, String(minPrice)));
   }
 
   if (maxPrice !== undefined) {
-    conditions.push(lte(products.price, String(maxPrice)))
+    conditions.push(lte(products.price, String(maxPrice)));
   }
 
   if (q) {
-    conditions.push(ilike(products.name, `%${q}%`))
+    conditions.push(ilike(products.name, `%${q}%`));
   }
 
   const orderBy =
-    sort === 'price-asc'
+    sort === "price-asc"
       ? asc(products.price)
-      : sort === 'price-desc'
+      : sort === "price-desc"
         ? desc(products.price)
-        : desc(products.createdAt)
+        : desc(products.createdAt);
 
   return db
     .select({
@@ -176,11 +201,11 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
       and(
         eq(productImages.productId, products.id),
         inArray(productImages.imageCategoryId, heroCategoryIds),
-        eq(productImages.position, 0)
-      )
+        eq(productImages.position, 0),
+      ),
     )
     .where(and(...conditions))
-    .orderBy(orderBy)
+    .orderBy(orderBy);
 }
 
 // Producto por slug con la hero y las variantes separadas para la galería del PDP.
@@ -189,9 +214,9 @@ export async function getProductBySlug(slug: string) {
     .select()
     .from(products)
     .where(eq(products.slug, slug))
-    .limit(1)
+    .limit(1);
 
-  if (!product) return null
+  if (!product) return null;
 
   const galleryImages = await db
     .select({
@@ -201,19 +226,25 @@ export async function getProductBySlug(slug: string) {
       categorySlug: imageCategories.slug,
     })
     .from(productImages)
-    .innerJoin(imageCategories, eq(imageCategories.id, productImages.imageCategoryId))
+    .innerJoin(
+      imageCategories,
+      eq(imageCategories.id, productImages.imageCategoryId),
+    )
     .where(
       and(
         eq(productImages.productId, product.id),
-        inArray(imageCategories.slug, GALLERY_IMAGE_CATEGORY_SLUGS)
-      )
+        inArray(imageCategories.slug, GALLERY_IMAGE_CATEGORY_SLUGS),
+      ),
     )
-    .orderBy(asc(imageCategories.sortOrder), asc(productImages.position))
+    .orderBy(asc(imageCategories.sortOrder), asc(productImages.position));
 
-  const heroImage = galleryImages.find((image) => image.categorySlug === 'hero') ?? null
-  const variantImages = galleryImages.filter((image) => image.categorySlug === 'variant')
+  const heroImage =
+    galleryImages.find((image) => image.categorySlug === "hero") ?? null;
+  const variantImages = galleryImages.filter(
+    (image) => image.categorySlug === "variant",
+  );
 
-  return { ...product, heroImage, variantImages }
+  return { ...product, heroImage, variantImages };
 }
 
 // Pedidos de un correo verificado (cubre pedidos hechos como invitado antes de registrarse,
@@ -222,10 +253,18 @@ export async function getOrdersByEmail(email: string) {
   const orderRows = await db
     .select()
     .from(orders)
-    .where(eq(orders.customerEmail, email))
-    .orderBy(desc(orders.createdAt))
+    .where(
+      and(
+        sql`lower(${orders.customerEmail}) = ${email.toLowerCase()}`,
+        or(
+          and(eq(orders.status, "cancelled"), isNotNull(orders.paidAt)),
+          inArray(orders.status, ["paid", "shipped", "delivered"]),
+        ),
+      ),
+    )
+    .orderBy(desc(orders.createdAt));
 
-  if (orderRows.length === 0) return []
+  if (orderRows.length === 0) return [];
 
   const items = await db
     .select()
@@ -233,12 +272,43 @@ export async function getOrdersByEmail(email: string) {
     .where(
       inArray(
         orderItems.orderId,
-        orderRows.map((o) => o.id)
-      )
-    )
+        orderRows.map((o) => o.id),
+      ),
+    );
 
+  const productIds = items.flatMap((item) =>
+    item.productId ? [item.productId] : [],
+  );
+  const images = productIds.length
+    ? await db
+        .select({
+          productId: products.id,
+          slug: products.slug,
+          publicId: productImages.cloudinaryPublicId,
+        })
+        .from(products)
+        .leftJoin(
+          productImages,
+          and(
+            eq(productImages.productId, products.id),
+            inArray(productImages.imageCategoryId, heroCategoryIds),
+            eq(productImages.position, 0),
+          ),
+        )
+        .where(inArray(products.id, productIds))
+    : [];
   return orderRows.map((order) => ({
     ...order,
-    items: items.filter((i) => i.orderId === order.id),
-  }))
+    items: items
+      .filter((i) => i.orderId === order.id)
+      .map((item) => ({
+        ...item,
+        imagePublicId:
+          images.find((image) => image.productId === item.productId)
+            ?.publicId ?? null,
+        productSlug:
+          images.find((image) => image.productId === item.productId)?.slug ??
+          "",
+      })),
+  }));
 }

@@ -1,22 +1,21 @@
-import { Caveat, Fredoka, Nunito_Sans } from "next/font/google";
+import localFont from "next/font/local";
 
-export const nunitoSans = Nunito_Sans({
+// Keep the brand fonts local so builds do not depend on Google Fonts requests.
+export const nunitoSans = localFont({
+  src: "./font-files/nunito-sans.ttf",
   variable: "--font-nunito-sans",
-  subsets: ["latin"],
-  weight: ["300", "400", "600", "700"],
+  weight: "200 900",
   display: "swap",
 });
-
-export const fredoka = Fredoka({
+export const fredoka = localFont({
+  src: "./font-files/fredoka.woff2",
   variable: "--font-fredoka",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "300 700",
   display: "swap",
 });
-
-export const caveat = Caveat({
+export const caveat = localFont({
+  src: "./font-files/caveat.woff2",
   variable: "--font-caveat",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "400 700",
   display: "swap",
 });
