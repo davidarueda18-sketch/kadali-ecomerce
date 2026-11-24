@@ -48,7 +48,8 @@ export default async function CheckoutExitoPage({ searchParams }: Props) {
         .where(eq(orders.orderNumber, orderNumber))
         .limit(1)
     : [];
-  const approved = order?.status === "paid";
+  const approved = order && ["paid", "shipped", "delivered"].includes(order.status);
+  const cancelled = order?.status === "cancelled";
 
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-2xl flex-col justify-center px-6 py-16 text-center">
@@ -59,11 +60,20 @@ export default async function CheckoutExitoPage({ searchParams }: Props) {
             Tu pago fue verificado directamente con Mercado Pago y tu pedido está confirmado.
           </p>
         </>
+      ) : cancelled ? (
+        <>
+          <h1 className="font-heading text-4xl font-semibold text-fg">Pedido cancelado</h1>
+          <p className="mt-4 text-fg-muted">
+            Este pedido figura como cancelado. Si ves un cobro aprobado en Mercado Pago,
+            contáctanos con el número de orden antes de intentar otro pago.
+          </p>
+        </>
       ) : (
         <>
           <h1 className="font-heading text-4xl font-semibold text-fg">Pago pendiente</h1>
           <p className="mt-4 text-fg-muted">
-            Mercado Pago aún no ha confirmado el pago. Actualizaremos el pedido cuando se procese.
+            Aún no hemos podido confirmar tu pedido. Si Mercado Pago ya aprobó el cobro,
+            no vuelvas a pagar: contáctanos con tu número de orden para verificarlo.
           </p>
         </>
       )}

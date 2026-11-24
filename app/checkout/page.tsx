@@ -56,13 +56,16 @@ export default function CheckoutPage() {
     }
 
     try {
-      const { initPoint } = await createOrder(form, items)
-      window.location.assign(initPoint)
-    } catch (checkoutError) {
+      const result = await createOrder(form, items)
+      if (!result.ok) {
+        setError(result.reference ? `${result.error} Referencia: ${result.reference}` : result.error)
+        setLoading(false)
+        return
+      }
+      window.location.assign(result.initPoint)
+    } catch {
       setError(
-        checkoutError instanceof Error
-          ? checkoutError.message
-          : 'No pudimos iniciar el pago. Inténtalo nuevamente.'
+        'No pudimos conectar con el servidor para iniciar el pago. Inténtalo nuevamente.'
       )
       setLoading(false)
     }
