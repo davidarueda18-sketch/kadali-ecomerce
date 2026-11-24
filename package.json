@@ -10,6 +10,7 @@
     "checkout:check": "tsx scripts/check-checkout.ts",
     "checkout:test": "tsx scripts/test-checkout.ts",
     "payments:test": "tsx --test tests/payments.test.ts",
+    "payments:diagnose-webhook": "tsx scripts/diagnose-webhook.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:generate": "drizzle-kit generate",

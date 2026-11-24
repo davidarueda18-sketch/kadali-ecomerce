@@ -1,4 +1,5 @@
 import { InvalidWebhookSignatureError, WebhookSignatureValidator } from 'mercadopago'
+import { webhookSignatureDiagnostics } from './webhook-diagnostics'
 
 type Dependencies = {
   getSecret: () => string | undefined
@@ -27,7 +28,7 @@ export function createMercadoPagoWebhook({ getSecret, reconcile, log }: Dependen
       })
     } catch (error) {
       log('Mercado Pago webhook rejected', {
-        requestId, paymentId: dataId,
+        ...webhookSignatureDiagnostics(request, secret),
         reason: error instanceof InvalidWebhookSignatureError ? error.reason : 'VALIDATION_ERROR',
       })
       return Response.json({ error: 'Invalid signature' }, { status: 401 })

@@ -4,6 +4,7 @@ import test from 'node:test'
 import { getCheckoutConfig } from '../lib/checkout-config'
 import { createMercadoPagoWebhook } from '../lib/mercadopago-webhook'
 import { reconcilePayment, type PaymentSnapshot, type ReconciliationOrder } from '../lib/payment-reconciliation'
+import { webhookSecretFingerprint } from '../lib/webhook-diagnostics'
 
 const secret = 'webhook-secret-only-for-automated-tests'
 const publicEnv = { MP_ACCESS_TOKEN: 'test-token', NEXT_PUBLIC_BASE_URL: 'https://www.kadalicandle.com', VERCEL_ENV: 'production' }
@@ -110,6 +111,25 @@ test('bad or expired signature never changes an order', async () => {
   assert.equal((await f.handler(signedRequest({ key: 'wrong-secret' }))).status, 401)
   assert.equal((await f.handler(signedRequest({ timestamp: Date.now() - 600_000 }))).status, 401)
   assert.equal(f.writes, 0)
+})
+
+test('signature diagnostics identify the effective secret without logging credentials or signatures', async () => {
+  const logs: Record<string, unknown>[] = []
+  const handler = createMercadoPagoWebhook({
+    getSecret: () => secret,
+    reconcile: async () => { throw new Error('Must not reconcile an invalid signature') },
+    log: (_event, details) => logs.push(details),
+  })
+  const request = signedRequest({ key: 'wrong-secret' })
+  const signature = request.headers.get('x-signature')!
+  assert.equal((await handler(request)).status, 401)
+  assert.equal(logs[0].reason, 'SignatureMismatch')
+  assert.equal(logs[0].secretFingerprint, webhookSecretFingerprint(secret))
+  assert.equal(logs[0].requestId, 'test-notification')
+  assert.equal(logs[0].paymentId, '12345')
+  assert.equal(logs[0].dataIdOccurrences, 1)
+  assert.ok(!JSON.stringify(logs).includes(secret))
+  assert.ok(!JSON.stringify(logs).includes(signature))
 })
 
 test('missing secret rejects notifications instead of acknowledging unprocessed payments', async () => {

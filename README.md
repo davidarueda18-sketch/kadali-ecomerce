@@ -59,6 +59,28 @@ su cuenta y la habilitación de la aplicación; no permite deducir por sí solo 
 política falló. Si persiste con credenciales vigentes, consulta a soporte de Mercado Pago.
 Cambiar variables en Vercel requiere un nuevo despliegue para que tengan efecto.
 
+Para investigar `SignatureMismatch` sin cambiar claves a ciegas:
+
+```bash
+pnpm payments:diagnose-webhook
+```
+
+El comando valida una solicitud con el SDK y el handler locales y envía la misma
+solicitud al despliegue público como evento `diagnostic`, que se ignora después de
+validar la firma. No consulta pagos, no modifica pedidos y no cobra. Usa la hora
+remota para descartar diferencias de reloj. Puedes indicar otro destino con
+`--url=https://tu-dominio.com/api/mercadopago/webhook`.
+
+Si local responde 200 y producción 401, busca el Request ID impreso en Vercel.
+Después de desplegar el código de diagnóstico, compara `secretFingerprint` con
+la huella local impresa: si difieren, el despliegue está usando otra clave. Si
+coinciden, compara `requestId`, `paymentId`, `dataIdOccurrences` y
+`signatureTimestamp` para detectar diferencias en los datos firmados. Los logs
+también identifican entorno y commit. No imprimas ni compartas el secreto o
+la cabecera de firma completa. Un 200 en este diagnóstico solo valida la
+compatibilidad de firma local/despliegue; todavía se debe comprobar una
+notificación auténtica de Mercado Pago.
+
 ### Producción
 
 El cobro público requiere `MP_WEBHOOK_SECRET` antes de crear un pedido o una
