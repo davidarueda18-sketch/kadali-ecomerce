@@ -85,12 +85,17 @@ test("unpaid and cancelled orders can never be shipped", () => {
 test("shipment progression cannot skip steps or go backwards", () => {
   assert.equal(canChangeShipment("paid", "unfulfilled", "preparing"), true);
   assert.equal(canChangeShipment("paid", "preparing", "shipped"), true);
-  assert.equal(canChangeShipment("shipped", "shipped", "delivered"), true);
+  assert.equal(canChangeShipment("paid", "shipped", "delivered"), true);
   assert.equal(canChangeShipment("paid", "unfulfilled", "delivered"), false);
   assert.equal(
-    canChangeShipment("delivered", "delivered", "unfulfilled"),
+    canChangeShipment("paid", "delivered", "unfulfilled"),
     false,
   );
+});
+test("payment and shipment states are independent and unknown steps are denied", () => {
+  assert.equal(canChangeShipment("shipped", "shipped", "delivered"), false);
+  assert.equal(canChangeShipment("refunded", "shipped", "delivered"), false);
+  assert.equal(canChangeShipment("paid", "missing", "unfulfilled"), false);
 });
 test("tracking never renders executable or non-HTTPS links", () => {
   assert.equal(trackingLink("javascript:alert(1)"), null);

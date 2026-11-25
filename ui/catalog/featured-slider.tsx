@@ -1,64 +1,70 @@
-'use client'
+"use client";
 
-import { useRef, useState } from 'react'
-import Image from 'next/image'
-import { ArrowLeft, ArrowRight } from 'lucide-react'
-import { cloudinaryUrl } from '@/lib/cloudinary'
-import IconButton from '@/ui/common/icon-button'
-import FeaturedProductCard from './featured-product-card'
+import { useRef, useState } from "react";
+import Image from "next/image";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { cloudinaryUrl } from "@/lib/cloudinary";
+import IconButton from "@/ui/common/icon-button";
+import FeaturedProductCard from "./featured-product-card";
 
 export type SliderProduct = {
-  id: number
-  name: string
-  slug: string
-  price: string
-  imagePublicId: string
-}
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  basePrice?: string;
+  imagePublicId: string;
+};
 
 type Props = {
-  products: SliderProduct[]
-  title?: string
-  className?: string
-}
+  products: SliderProduct[];
+  title?: string;
+  className?: string;
+};
 
-const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(n, hi))
+const clamp = (n: number, lo: number, hi: number) =>
+  Math.max(lo, Math.min(n, hi));
 
 export default function FeaturedSlider({
   products,
-  title = 'Las Irresistibles',
-  className = '',
+  title = "Las Irresistibles",
+  className = "",
 }: Props) {
-  const trackRef = useRef<HTMLDivElement>(null)
-  const rafRef = useRef(false)
-  const [active, setActive] = useState(0)
+  const trackRef = useRef<HTMLDivElement>(null);
+  const rafRef = useRef(false);
+  const [active, setActive] = useState(0);
 
-  if (products.length === 0) return null
+  if (products.length === 0) return null;
 
-  const n = products.length
+  const n = products.length;
 
   function handleScroll() {
-    if (rafRef.current) return
-    rafRef.current = true
+    if (rafRef.current) return;
+    rafRef.current = true;
     requestAnimationFrame(() => {
-      rafRef.current = false
-      const track = trackRef.current
-      if (!track) return
-      const i = clamp(Math.round(track.scrollLeft / track.clientWidth), 0, n - 1)
-      setActive((prev) => (prev !== i ? i : prev))
-    })
+      rafRef.current = false;
+      const track = trackRef.current;
+      if (!track) return;
+      const i = clamp(
+        Math.round(track.scrollLeft / track.clientWidth),
+        0,
+        n - 1,
+      );
+      setActive((prev) => (prev !== i ? i : prev));
+    });
   }
 
   function goTo(i: number) {
-    const track = trackRef.current
-    if (!track) return
-    const idx = clamp(i, 0, n - 1)
+    const track = trackRef.current;
+    if (!track) return;
+    const idx = clamp(i, 0, n - 1);
     const reduce =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     track.scrollTo({
       left: idx * track.clientWidth,
-      behavior: reduce ? 'auto' : 'smooth',
-    })
+      behavior: reduce ? "auto" : "smooth",
+    });
   }
 
   return (
@@ -80,7 +86,7 @@ export default function FeaturedSlider({
             sizes="100vw"
             priority={i === 0}
             className={`scale-105 object-cover blur-[2px] transition-opacity duration-500 ${
-              i === active ? 'opacity-100' : 'opacity-0'
+              i === active ? "opacity-100" : "opacity-0"
             }`}
           />
         ))}
@@ -136,8 +142,8 @@ export default function FeaturedSlider({
               onClick={() => goTo(i)}
               className={`h-2 rounded-full transition-all ${
                 i === active
-                  ? 'w-6 bg-surface'
-                  : 'w-2 bg-surface/50 hover:bg-surface/80'
+                  ? "w-6 bg-surface"
+                  : "w-2 bg-surface/50 hover:bg-surface/80"
               }`}
             />
           ))}
@@ -152,5 +158,5 @@ export default function FeaturedSlider({
         />
       </div>
     </div>
-  )
+  );
 }

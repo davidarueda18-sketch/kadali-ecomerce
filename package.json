@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "tsx --test tests/*.test.ts",
+    "test:ui": "tsx scripts/check-admin-ui.ts",
+    "emails:process": "tsx scripts/process-emails.ts",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio"
   },
@@ -23,6 +25,8 @@
     "ws": "^8.21.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.6.0",
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

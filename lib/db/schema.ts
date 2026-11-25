@@ -1,7 +1,9 @@
 import {
   bigint,
   boolean,
+  date,
   integer,
+  jsonb,
   numeric,
   pgTable,
   text,
@@ -159,25 +161,61 @@ export const orders = pgTable("orders", {
   // Nulo para pedidos de invitado; se vincula al registrarse con el mismo correo (ver lib/auth.ts)
   userId: text().references(() => user.id),
   customerName: varchar({ length: 255 }).notNull(),
-  customerEmail: varchar({ length: 255 }).notNull(),
+  customerEmail: varchar({ length: 255 }),
   customerPhone: varchar({ length: 20 }),
-  address: varchar({ length: 500 }).notNull(),
-  city: varchar({ length: 100 }).notNull(),
+  address: varchar({ length: 500 }),
+  city: varchar({ length: 100 }),
   zipCode: varchar({ length: 10 }),
   country: varchar({ length: 100 }).notNull().default("Colombia"),
   subtotal: numeric({ precision: 10, scale: 2 }).notNull(),
   shippingCost: numeric({ precision: 10, scale: 2 }).notNull().default("0"),
   total: numeric({ precision: 10, scale: 2 }).notNull(),
-  // 'pending' | 'paid' | 'shipped' | 'delivered' | 'cancelled'
+  // Legacy projection; payment and fulfillment are authoritative.
   status: varchar({ length: 50 }).notNull().default("pending"),
+  paymentStatus: varchar({ length: 30 }).notNull().default("pending"),
+  paymentId: varchar({ length: 100 }),
+  providerPaymentStatus: varchar({ length: 50 }),
+  paymentUpdatedAt: timestamp({ withTimezone: true }),
+  paymentRevision: integer().notNull().default(0),
+  source: varchar({ length: 20 }).notNull().default("web"),
+  paymentMethod: varchar({ length: 30 }),
+  saleDate: date(),
+  shippingRequired: boolean().notNull().default(true),
+  manualEntryKey: varchar({ length: 36 }).unique(
+    "orders_manual_entry_key_unique",
+  ),
+  manualRequestHash: varchar({ length: 64 }),
+  manualStockLedger:
+    jsonb().$type<Record<string, { quantity: number; deducted: number }>>(),
+  commissionAmount: numeric({ precision: 12, scale: 2 }),
+  preparationRequired: boolean().notNull().default(false),
+  preparationMessage: text(),
+  deliveryEvidence: text(),
+  commissionPercent: numeric({ precision: 5, scale: 2 }),
+  commissionFixed: numeric({ precision: 10, scale: 2 }),
+  commissionBasis: numeric({ precision: 10, scale: 2 }),
+  commissionSource: varchar({ length: 30 }).notNull().default("unknown"),
+  commissionConfigRevision: integer(),
+  commissionRecordedAt: timestamp({ withTimezone: true }),
   notes: text(),
   paidAt: timestamp(),
+  paidAtSource: varchar({ length: 30 }).notNull().default("unknown"),
   fulfillmentStatus: varchar({ length: 30 }).notNull().default("unfulfilled"),
   carrier: varchar({ length: 100 }),
   trackingNumber: varchar({ length: 150 }),
   trackingUrl: varchar({ length: 1000 }),
   stockDeducted: boolean().notNull().default(false),
   createdAt: timestamp().defaultNow().notNull(),
+});
+
+// Singleton configuration. Orders retain their own immutable tariff snapshot.
+export const commissionSettings = pgTable("commission_settings", {
+  id: integer().primaryKey(),
+  percent: numeric({ precision: 5, scale: 2 }).notNull(),
+  fixed: numeric({ precision: 10, scale: 2 }).notNull(),
+  revision: integer().notNull().default(1),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  updatedBy: text().notNull(),
 });
 
 export const orderItems = pgTable("order_items", {
@@ -190,6 +228,58 @@ export const orderItems = pgTable("order_items", {
   unitPrice: numeric({ precision: 10, scale: 2 }).notNull(),
   quantity: integer().notNull(),
   subtotal: numeric({ precision: 10, scale: 2 }).notNull(),
+  baseUnitPrice: numeric({ precision: 10, scale: 2 }),
+  promotionId: integer(),
+  madeToOrderQuantity: integer().notNull().default(0),
+});
+
+export const promotions = pgTable("promotions", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  name: varchar({ length: 150 }).notNull(),
+  productId: integer().references(() => products.id),
+  categoryId: integer().references(() => categories.id),
+  kind: varchar({ length: 20 }).notNull(),
+  value: numeric({ precision: 10, scale: 2 }).notNull(),
+  active: boolean().notNull().default(true),
+  startsAt: timestamp({ withTimezone: true }),
+  endsAt: timestamp({ withTimezone: true }),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+export const customerNotes = pgTable("customer_notes", {
+  email: varchar({ length: 255 }).primaryKey(),
+  notes: text().notNull(),
+  updatedBy: text().notNull(),
+  updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+export const emailJobs = pgTable("email_jobs", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  orderId: integer()
+    .notNull()
+    .references(() => orders.id),
+  eventKey: varchar({ length: 200 }).notNull().unique(),
+  kind: varchar({ length: 30 }).notNull(),
+  recipient: varchar({ length: 255 }).notNull(),
+  payload: jsonb()
+    .$type<{
+      name: string;
+      reference: string;
+      total: string;
+      shippingCost: string;
+      items: { name: string; quantity: number; price: string }[];
+      preparation: string | null;
+      carrier: string | null;
+      trackingNumber: string | null;
+      trackingUrl: string | null;
+    }>()
+    .notNull(),
+  status: varchar({ length: 20 }).notNull().default("pending"),
+  attempts: integer().notNull().default(0),
+  availableAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  lockedUntil: timestamp({ withTimezone: true }),
+  leaseToken: varchar({ length: 36 }),
+  lastError: text(),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  sentAt: timestamp({ withTimezone: true }),
 });
 
 export const adminEvents = pgTable("admin_events", {

@@ -1,20 +1,29 @@
-import Image from 'next/image'
-import Link from 'next/link'
-import { cloudinaryUrl } from '@/lib/cloudinary'
-import { formatPrice } from '@/lib/format'
-import RatingBadge from './rating-badge'
-import FavoriteButton from './favorite-button'
+import Image from "next/image";
+import Link from "next/link";
+import { cloudinaryUrl } from "@/lib/cloudinary";
+import RatingBadge from "./rating-badge";
+import FavoriteButton from "./favorite-button";
+import ProductPrice from "./product-price";
 
 type Props = {
-  id: number
-  name: string
-  slug: string
-  price: string
-  description: string | null
-  imagePublicId: string | null
-}
+  id: number;
+  name: string;
+  slug: string;
+  price: string;
+  basePrice?: string;
+  description: string | null;
+  imagePublicId: string | null;
+};
 
-export default function ProductCard({ id, name, slug, price, description, imagePublicId }: Props) {
+export default function ProductCard({
+  id,
+  name,
+  slug,
+  price,
+  basePrice,
+  description,
+  imagePublicId,
+}: Props) {
   return (
     <article className="group">
       <div className="relative mb-3 aspect-4/5 overflow-hidden rounded-2xl bg-bg-alt">
@@ -52,10 +61,14 @@ export default function ProductCard({ id, name, slug, price, description, imageP
           {name}
         </h3>
         {description && (
-          <p className="mb-1.5 line-clamp-1 text-xs text-fg-muted">{description}</p>
+          <p className="mb-1.5 line-clamp-1 text-xs text-fg-muted">
+            {description}
+          </p>
         )}
-        <p className="text-sm font-semibold text-fg">{formatPrice(price)}</p>
+        <p className="text-sm font-semibold text-fg">
+          <ProductPrice price={price} basePrice={basePrice} />
+        </p>
       </Link>
     </article>
-  )
+  );
 }

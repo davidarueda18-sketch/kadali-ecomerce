@@ -22,7 +22,9 @@ function signedRequest(options: { key?: string; timestamp?: number; id?: string 
 }
 
 function fixture() {
-  let order: ReconciliationOrder = { id: 1, orderNumber: 'KD-TEST', total: '2000.00', status: 'pending' }
+  let order: ReconciliationOrder = { id: 1, orderNumber: 'KD-TEST', total: '2000.00', paymentStatus: 'pending',
+    paymentId: null, providerPaymentStatus: null, paymentUpdatedAt: null, paymentRevision: 0,
+    fulfillmentStatus: 'unfulfilled', source: 'web', paidAt: null, paidAtSource: 'unknown' }
   const payment: PaymentSnapshot = { id: 12345, external_reference: order.orderNumber, currency_id: 'COP', transaction_amount: 2000, status: 'approved', live_mode: true }
   let writes = 0
   let databaseUnavailable = false
@@ -33,10 +35,10 @@ function fixture() {
       return { ...payment }
     },
     findOrder: async (number) => number === order.orderNumber ? { ...order } : undefined,
-    updateStatus: async (observed, status) => {
+    updateStatus: async (observed, update) => {
       if (databaseUnavailable) throw new Error('Database unavailable')
-      if (observed.status !== order.status) return false
-      order = { ...order, status }
+      if (observed.paymentRevision !== order.paymentRevision) return false
+      order = { ...order, ...update, paymentRevision: order.paymentRevision + 1 }
       writes++
       return true
     },
@@ -67,14 +69,14 @@ test('webhook confirms a pending order without any browser return', async () => 
   const f = fixture()
   const response = await f.handler(signedRequest())
   assert.equal(response.status, 200)
-  assert.equal(f.order.status, 'paid')
+  assert.equal(f.order.paymentStatus, 'paid')
   assert.equal(f.writes, 1)
 })
 
 test('a correctly signed timestamp in seconds confirms the order', async () => {
   const f = fixture()
   assert.equal((await f.handler(signedRequest({ timestamp: Math.floor(Date.now() / 1000) }))).status, 200)
-  assert.equal(f.order.status, 'paid')
+  assert.equal(f.order.paymentStatus, 'paid')
 })
 
 test('an expired seconds timestamp is rejected even when its HMAC is valid', async () => {
@@ -87,7 +89,7 @@ test('redelivering the same webhook does not repeat the update', async () => {
   const f = fixture()
   await f.handler(signedRequest())
   assert.equal((await f.handler(signedRequest())).status, 200)
-  assert.equal(f.order.status, 'paid')
+  assert.equal(f.order.paymentStatus, 'paid')
   assert.equal(f.writes, 1)
 })
 
@@ -96,15 +98,15 @@ test('a rejected payment attempt cannot cancel a paid order', async () => {
   await f.handler(signedRequest())
   f.payment.status = 'rejected'
   assert.equal((await f.handler(signedRequest())).status, 200)
-  assert.equal(f.order.status, 'paid')
+  assert.equal(f.order.paymentStatus, 'paid')
 })
 
 test('a pending provider status is not approved by the webhook body', async () => {
   const f = fixture()
   f.payment.status = 'pending'
   assert.equal((await f.handler(signedRequest())).status, 200)
-  assert.equal(f.order.status, 'pending')
-  assert.equal(f.writes, 0)
+  assert.equal(f.order.paymentStatus, 'pending')
+  assert.equal(f.writes, 1) // Persist the verified pending attempt reference, not an approval.
 })
 
 for (const [field, value] of Object.entries({ currency_id: 'USD', transaction_amount: 1000, external_reference: 'KD-OTHER', live_mode: false, id: 99999 })) {
@@ -112,7 +114,7 @@ for (const [field, value] of Object.entries({ currency_id: 'USD', transaction_am
     const f = fixture()
     Object.assign(f.payment, { [field]: value })
     assert.equal((await f.handler(signedRequest())).status, 500)
-    assert.equal(f.order.status, 'pending')
+    assert.equal(f.order.paymentStatus, 'pending')
     assert.equal(f.writes, 0)
   })
 }
@@ -152,10 +154,10 @@ test('database failure is retryable and confirms the order after recovery', asyn
   const f = fixture()
   f.setDatabaseUnavailable(true)
   assert.equal((await f.handler(signedRequest())).status, 500)
-  assert.equal(f.order.status, 'pending')
+  assert.equal(f.order.paymentStatus, 'pending')
   f.setDatabaseUnavailable(false)
   assert.equal((await f.handler(signedRequest())).status, 200)
-  assert.equal(f.order.status, 'paid')
+  assert.equal(f.order.paymentStatus, 'paid')
 })
 
 test('provider failure is retryable and confirms the order after recovery', async () => {
@@ -165,5 +167,5 @@ test('provider failure is retryable and confirms the order after recovery', asyn
   assert.equal(f.writes, 0)
   f.setProviderUnavailable(false)
   assert.equal((await f.handler(signedRequest())).status, 200)
-  assert.equal(f.order.status, 'paid')
+  assert.equal(f.order.paymentStatus, 'paid')
 })

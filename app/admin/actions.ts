@@ -3,7 +3,9 @@ import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { MercadoPagoConfig, Payment } from "mercadopago";
 import { requireAdmin } from "@/lib/admin";
-import { canChangeShipment } from "@/lib/admin-policy";
+import { saveOrderShipment } from "@/lib/shipment-store";
+import { updateCommissionSettings } from "@/lib/commission-settings-store";
+import { scheduleEmails } from "@/lib/schedule-emails";
 import { db } from "@/lib/db";
 import {
   orders,
@@ -66,43 +68,37 @@ export async function saveShipment(_state: ActionState, form: FormData) {
       throw new Error("El seguimiento debe usar una URL HTTPS");
     if (next === "shipped" && (!carrier || !trackingNumber))
       throw new Error("Agrega transportadora y número de guía para despachar");
-    await db.transaction(async (tx) => {
-      const [order] = await tx
-        .select()
-        .from(orders)
-        .where(eq(orders.id, id))
-        .for("update");
-      if (
-        !order ||
-        !canChangeShipment(order.status, order.fulfillmentStatus, next)
-      )
-        throw new Error(
-          "Solo puedes avanzar el envío de un pedido pagado, un paso a la vez",
-        );
-      const status = next === "shipped" || next === "delivered" ? next : "paid";
-      await tx
-        .update(orders)
-        .set({
-          status,
-          fulfillmentStatus: next,
-          carrier: carrier || null,
-          trackingNumber: trackingNumber || null,
-          trackingUrl: trackingUrl || null,
-        })
-        .where(eq(orders.id, id));
-      await tx.insert(adminEvents).values({
-        entityType: "order",
-        entityId: id,
-        actor: actor.email,
-        action: "shipment",
-        detail: JSON.stringify({
-          from: order.fulfillmentStatus,
-          to: next,
-          carrier,
-          trackingNumber,
-        }),
-      });
-    });
+    await saveOrderShipment(
+      db,
+      id,
+      {
+        fulfillmentStatus: next,
+        carrier,
+        trackingNumber,
+        trackingUrl,
+        deliveryEvidence: field(form, "deliveryEvidence", 5000),
+      },
+      actor.email,
+    );
+    scheduleEmails();
+  });
+}
+
+export async function saveCommissionSettings(
+  _state: ActionState,
+  form: FormData,
+) {
+  const actor = await requireAdmin();
+  return execute(async () => {
+    await updateCommissionSettings(
+      db,
+      {
+        percent: field(form, "percent", 20),
+        fixed: field(form, "fixed", 20),
+        revision: positiveId(form, "revision"),
+      },
+      actor.email,
+    );
   });
 }
 
@@ -112,6 +108,8 @@ export async function verifyOrderPayment(_state: ActionState, form: FormData) {
     const id = positiveId(form);
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
     if (!order) throw new Error("Pedido no encontrado");
+    if (order.source !== "web")
+      throw new Error("Esta venta no corresponde a Mercado Pago");
     const token = process.env.MP_ACCESS_TOKEN;
     if (!token) throw new Error("Mercado Pago no está configurado");
     const client = new Payment(new MercadoPagoConfig({ accessToken: token }));
@@ -135,6 +133,7 @@ export async function verifyOrderPayment(_state: ActionState, form: FormData) {
     );
     for (const payment of matching)
       await reconcileMercadoPagoPayment(String(payment.id));
+    scheduleEmails();
     await db.insert(adminEvents).values({
       entityType: "order",
       entityId: id,

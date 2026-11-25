@@ -8,6 +8,7 @@ import { getOrdersByEmail } from "@/lib/db/queries";
 import { formatPrice } from "@/lib/format";
 import { cloudinaryUrl } from "@/lib/cloudinary";
 import { SHIPPING_LABELS } from "@/lib/admin-policy";
+import { PAYMENT_LABELS } from "@/lib/order-state";
 import { orderDate, trackingLink } from "@/lib/order-display";
 import { PAYMENT_TEST_PRODUCT_SLUG } from "@/lib/payment-config";
 export const metadata = { title: "Mis compras | Kadali" };
@@ -52,13 +53,11 @@ export default async function PedidosPage() {
             const internal = order.items.every(
               (item) => item.productSlug === PAYMENT_TEST_PRODUCT_SLUG,
             );
-            const shipping =
-              order.status === "cancelled"
-                ? "Compra cancelada"
-                : internal
-                  ? "Compra confirmada · sin despacho"
-                  : (SHIPPING_LABELS[order.fulfillmentStatus] ??
-                    "Por preparar");
+            const shipping = !order.shippingRequired
+              ? "Compra entregada · sin envío"
+              : internal
+                ? "Compra confirmada · sin despacho"
+                : (SHIPPING_LABELS[order.fulfillmentStatus] ?? "Por preparar");
             const step = [
               "unfulfilled",
               "preparing",
@@ -111,7 +110,15 @@ export default async function PedidosPage() {
                       <p className="font-bold">{formatPrice(item.subtotal)}</p>
                     </div>
                   ))}
-                  {!internal && order.status !== "cancelled" && (
+                  <p className="text-sm text-fg-muted">
+                    Pago: {PAYMENT_LABELS[order.paymentStatus] ?? "Por revisar"}
+                  </p>
+                  {order.preparationRequired && (
+                    <p className="rounded-xl bg-bg p-3 text-sm">
+                      {order.preparationMessage}
+                    </p>
+                  )}
+                  {!internal && order.shippingRequired && (
                     <>
                       <ol
                         aria-label="Progreso del envío"

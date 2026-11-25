@@ -1,6 +1,6 @@
-import type { Metadata } from 'next'
-import Image from 'next/image'
-import Link from 'next/link'
+import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import {
   ArrowDown,
   ArrowRight,
@@ -11,114 +11,119 @@ import {
   Sparkles,
   UtensilsCrossed,
   Wind,
-} from 'lucide-react'
-import { cloudinaryUrl } from '@/lib/cloudinary'
-import { formatPrice } from '@/lib/format'
+} from "lucide-react";
+import { cloudinaryUrl } from "@/lib/cloudinary";
 import {
   getActiveProductPlates,
   getActiveProducts,
   getActiveProductThemes,
-} from '@/lib/db/queries'
-import HeroCompanions from '@/ui/home/hero-companions'
-import NewsletterForm from '@/ui/home/newsletter-form'
-import FavoriteButton from '@/ui/product/favorite-button'
-import styles from './home.module.css'
+} from "@/lib/db/queries";
+import HeroCompanions from "@/ui/home/hero-companions";
+import NewsletterForm from "@/ui/home/newsletter-form";
+import FavoriteButton from "@/ui/product/favorite-button";
+import styles from "./home.module.css";
+import ProductPrice from "@/ui/product/product-price";
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: 'Kadali — Objetos deliciosamente inesperados',
+  title: "Kadali — Objetos deliciosamente inesperados",
   description:
-    'Velas artesanales inspiradas en postres y frutas, hechas en Colombia para regalar y transformar tus espacios.',
-}
+    "Velas artesanales inspiradas en postres y frutas, hechas en Colombia para regalar y transformar tus espacios.",
+};
 
 const PRODUCT_ORDER = [
-  'vida-fresastica',
-  'dulce-delito',
-  'mera-mora',
-  'limalaya',
-  'sand-ia',
-]
+  "vida-fresastica",
+  "dulce-delito",
+  "mera-mora",
+  "limalaya",
+  "sand-ia",
+];
 
 const PRODUCT_CARD_ORDER = [
-  'limalaya',
-  'vida-fresastica',
-  'sand-ia',
-  'mera-mora',
-  'dulce-delito',
-]
+  "limalaya",
+  "vida-fresastica",
+  "sand-ia",
+  "mera-mora",
+  "dulce-delito",
+];
 
-const HOME_HERO_ORDER = ['sand-ia', 'mera-mora', 'dulce-delito', 'limalaya']
+const HOME_HERO_ORDER = ["sand-ia", "mera-mora", "dulce-delito", "limalaya"];
 
 const PRODUCT_NOTES: Record<
   string,
   { label: string; note: string; accent: string }
 > = {
   limalaya: {
-    label: 'Cítrica',
-    note: 'Lima · fresca y brillante',
-    accent: '#dfe8a7',
+    label: "Cítrica",
+    note: "Lima · fresca y brillante",
+    accent: "#dfe8a7",
   },
-  'vida-fresastica': {
-    label: 'Frutal',
-    note: 'Fresa · dulce y vibrante',
-    accent: '#f4c0bd',
+  "vida-fresastica": {
+    label: "Frutal",
+    note: "Fresa · dulce y vibrante",
+    accent: "#f4c0bd",
   },
-  'sand-ia': {
-    label: 'Refrescante',
-    note: 'Sandía · jugosa y alegre',
-    accent: '#cbdc9a',
+  "sand-ia": {
+    label: "Refrescante",
+    note: "Sandía · jugosa y alegre",
+    accent: "#cbdc9a",
   },
-  'mera-mora': {
-    label: 'Intensa',
-    note: 'Mora · suave y envolvente',
-    accent: '#d9b9ce',
+  "mera-mora": {
+    label: "Intensa",
+    note: "Mora · suave y envolvente",
+    accent: "#d9b9ce",
   },
-  'dulce-delito': {
-    label: 'Golosa',
-    note: 'Chocolate · intensa y cremosa',
-    accent: '#c89a7b',
+  "dulce-delito": {
+    label: "Golosa",
+    note: "Chocolate · intensa y cremosa",
+    accent: "#c89a7b",
   },
-}
+};
 
 const BENEFITS = [
   {
     icon: UtensilsCrossed,
-    label: 'No te la comas',
-    detail: 'Aunque entendemos la confusión.',
+    label: "No te la comas",
+    detail: "Aunque entendemos la confusión.",
   },
   {
     icon: Flame,
-    label: 'Sí, prende de verdad',
-    detail: 'Bonita, aromática y funcional.',
+    label: "Sí, prende de verdad",
+    detail: "Bonita, aromática y funcional.",
   },
   {
     icon: Wind,
-    label: 'Huele a antojo',
-    detail: 'Sin ensuciar ningún plato.',
+    label: "Huele a antojo",
+    detail: "Sin ensuciar ningún plato.",
   },
   {
     icon: Eye,
-    label: 'Difícil de ignorar',
-    detail: 'Ese es precisamente el punto.',
+    label: "Difícil de ignorar",
+    detail: "Ese es precisamente el punto.",
   },
-]
+];
 
 const HOME_IMAGES = {
-  strawberryDetail: 'ChatGPT_Image_13_ago_2026_12_30_01_bkbzr8',
-  strawberryHand: 'ChatGPT_Image_13_ago_2026_12_55_13_qmeemb',
-  strawberryEditorial: 'ChatGPT_Image_13_ago_2026_12_14_15_eoladx',
-  chocolateEditorial: 'Choco_theme_qywj68',
-  limeEditorial: 'ChatGPT_Image_13_ago_2026_12_38_12_pz8b1d',
-  berryEditorial: 'ChatGPT_Image_13_ago_2026_12_01_29_dkyvxb',
-  berryClose: 'ChatGPT_Image_13_ago_2026_12_34_08_hgizto',
-  watermelonEditorial: 'ChatGPT_Image_13_ago_2026_12_35_36_rpflku',
-} as const
+  strawberryDetail: "ChatGPT_Image_13_ago_2026_12_30_01_bkbzr8",
+  strawberryHand: "ChatGPT_Image_13_ago_2026_12_55_13_qmeemb",
+  strawberryEditorial: "ChatGPT_Image_13_ago_2026_12_14_15_eoladx",
+  chocolateEditorial: "Choco_theme_qywj68",
+  limeEditorial: "ChatGPT_Image_13_ago_2026_12_38_12_pz8b1d",
+  berryEditorial: "ChatGPT_Image_13_ago_2026_12_01_29_dkyvxb",
+  berryClose: "ChatGPT_Image_13_ago_2026_12_34_08_hgizto",
+  watermelonEditorial: "ChatGPT_Image_13_ago_2026_12_35_36_rpflku",
+} as const;
 
 const SPACE_CARDS = [
-  { src: '/images/kadali-home-interior.png', label: 'Mesa auxiliar', local: true },
-  { src: HOME_IMAGES.chocolateEditorial, label: 'Biblioteca' },
-  { src: HOME_IMAGES.strawberryHand, label: 'Escritorio' },
-  { src: HOME_IMAGES.berryEditorial, label: 'Tocador' },
-]
+  {
+    src: "/images/kadali-home-interior.png",
+    label: "Mesa auxiliar",
+    local: true,
+  },
+  { src: HOME_IMAGES.chocolateEditorial, label: "Biblioteca" },
+  { src: HOME_IMAGES.strawberryHand, label: "Escritorio" },
+  { src: HOME_IMAGES.berryEditorial, label: "Tocador" },
+];
 
 const SOCIAL_IMAGES = [
   HOME_IMAGES.strawberryEditorial,
@@ -126,63 +131,105 @@ const SOCIAL_IMAGES = [
   HOME_IMAGES.limeEditorial,
   HOME_IMAGES.watermelonEditorial,
   HOME_IMAGES.berryClose,
-]
+];
 
 function WrappedBoxIcon() {
   return (
-    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d="M5.5 12.5h21v14h-21zM4 8.5h24v4H4zM16 8.5v18" />
       <path d="M16 8.5c-4.8.2-7.1-1-7.1-3 0-1.5 1.1-2.4 2.6-2.1C13.7 3.8 15 6.1 16 8.5Zm0 0c4.8.2 7.1-1 7.1-3 0-1.5-1.1-2.4-2.6-2.1C18.3 3.8 17 6.1 16 8.5Z" />
     </svg>
-  )
+  );
 }
 
 function ReadyGiftIcon() {
   return (
-    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d="M6 13h20v14H6zM4.5 9h23v4h-23zM16 9v18" />
       <path d="M16 9c-3.7-1.2-6-3.1-5.4-5 .5-1.5 2.2-1.6 3.5-.6C15.4 4.4 16 6.6 16 9Zm0 0c3.7-1.2 6-3.1 5.4-5-.5-1.5-2.2-1.6-3.5-.6C16.6 4.4 16 6.6 16 9Z" />
       <path d="M9 17.5h4M19 17.5h4" />
     </svg>
-  )
+  );
 }
 
 function MessageCardIcon() {
   return (
-    <svg viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 32 32"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <rect x="4.5" y="7" width="23" height="18" rx="1.5" />
       <path d="m6 10 10 7 10-7M9 22h14" />
       <path d="M14 12.3c.8-1.2 3.2-1.2 4 0 .8 1.4-2 3.1-2 3.1s-2.8-1.7-2-3.1Z" />
     </svg>
-  )
+  );
 }
 
 function InstagramIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
       <circle cx="12" cy="12" r="4" />
       <circle cx="17.4" cy="6.7" r="0.7" fill="currentColor" stroke="none" />
     </svg>
-  )
+  );
 }
 
 function TikTokIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <path d="M14 4v10.2a4.2 4.2 0 1 1-3.6-4.15" />
       <path d="M14 4c.55 2.7 2.15 4.2 4.6 4.65" />
     </svg>
-  )
+  );
 }
 
 function PinterestIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+    >
       <circle cx="12" cy="12" r="9" />
       <path d="M9.5 18.5 12 8.8c.35-1.35 2.15-1.45 2.55-.2.45 1.4-.15 3.4-1.55 3.85-1.05.35-1.85-.25-2.1-1.05" />
     </svg>
-  )
+  );
 }
 
 export default async function HomePage() {
@@ -190,31 +237,37 @@ export default async function HomePage() {
     getActiveProducts(),
     getActiveProductThemes(),
     getActiveProductPlates(),
-  ])
+  ]);
   const collection = PRODUCT_ORDER.map((slug) =>
-    products.find((product) => product.slug === slug)
-  ).filter((product): product is (typeof products)[number] => Boolean(product))
+    products.find((product) => product.slug === slug),
+  ).filter((product): product is (typeof products)[number] => Boolean(product));
   const productCards = PRODUCT_CARD_ORDER.map((slug) =>
-    products.find((product) => product.slug === slug)
-  ).filter((product): product is (typeof products)[number] => Boolean(product))
+    products.find((product) => product.slug === slug),
+  ).filter((product): product is (typeof products)[number] => Boolean(product));
   const heroCollection = HOME_HERO_ORDER.map((slug) =>
-    themeProducts.find((product) => product.slug === slug)
-  ).filter(
-    (product): product is (typeof themeProducts)[number] => Boolean(product)
-  )
+    themeProducts.find((product) => product.slug === slug),
+  ).filter((product): product is (typeof themeProducts)[number] =>
+    Boolean(product),
+  );
 
-  const heroProduct = heroCollection[0] ?? collection[0]
-  const heroCompanions = (heroCollection.length > 0 ? heroCollection : collection).filter(
-    (product) => product.id !== heroProduct?.id
-  )
-  const giftProduct = plateProducts.find((product) => product.slug === 'mera-mora')
+  const heroProduct = heroCollection[0] ?? collection[0];
+  const heroCompanions = (
+    heroCollection.length > 0 ? heroCollection : collection
+  ).filter((product) => product.id !== heroProduct?.id);
+  const giftProduct = plateProducts.find(
+    (product) => product.slug === "mera-mora",
+  );
 
   return (
     <div className={styles.page}>
       <section className={styles.hero} aria-labelledby="hero-title">
         <div className={styles.heroHalo} aria-hidden />
-        <div className={`${styles.heroGrid} relative z-10 mx-auto grid min-h-svh max-w-7xl items-center gap-x-12 gap-y-10 px-5 pb-12 pt-28 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:grid-rows-[auto_auto] lg:gap-x-16 lg:gap-y-0 lg:px-12 lg:pb-16 lg:pt-28`}>
-          <div className={`${styles.heroTitleBlock} max-w-2xl lg:col-start-1 lg:row-start-1 lg:self-end`}>
+        <div
+          className={`${styles.heroGrid} relative z-10 mx-auto grid min-h-svh max-w-7xl items-center gap-x-12 gap-y-10 px-5 pb-12 pt-28 sm:px-8 lg:grid-cols-[0.88fr_1.12fr] lg:grid-rows-[auto_auto] lg:gap-x-16 lg:gap-y-0 lg:px-12 lg:pb-16 lg:pt-28`}
+        >
+          <div
+            className={`${styles.heroTitleBlock} max-w-2xl lg:col-start-1 lg:row-start-1 lg:self-end`}
+          >
             <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#d9c7ba] bg-white/55 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.19em] text-[#694b50] backdrop-blur-sm">
               <span className="size-1.5 rounded-full bg-brand" aria-hidden />
               ¿Te la vas a comer?
@@ -230,7 +283,9 @@ export default async function HomePage() {
           </div>
 
           {heroProduct && (
-            <div className={`${styles.heroVisualBlock} relative mx-auto mb-4 w-full max-w-[680px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mb-0 lg:self-center`}>
+            <div
+              className={`${styles.heroVisualBlock} relative mx-auto mb-4 w-full max-w-[680px] lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mb-0 lg:self-center`}
+            >
               <div className="grid grid-cols-[minmax(0,1fr)_4.75rem] gap-3 sm:grid-cols-[minmax(0,1fr)_7.5rem] sm:gap-4">
                 <Link
                   href={`/productos/${heroProduct.slug}`}
@@ -270,12 +325,18 @@ export default async function HomePage() {
             </div>
           )}
 
-          <div className={`${styles.heroCopyBlock} max-w-2xl lg:col-start-1 lg:row-start-2 lg:self-start`}>
-            <p className={`${styles.heroLead} max-w-lg text-base leading-7 text-[#6f615c] sm:text-lg sm:leading-8 lg:mt-8`}>
+          <div
+            className={`${styles.heroCopyBlock} max-w-2xl lg:col-start-1 lg:row-start-2 lg:self-start`}
+          >
+            <p
+              className={`${styles.heroLead} max-w-lg text-base leading-7 text-[#6f615c] sm:text-lg sm:leading-8 lg:mt-8`}
+            >
               Aunque tenemos nuestras dudas.
             </p>
 
-            <div className={`${styles.heroActions} mt-9 flex flex-col gap-3 sm:flex-row`}>
+            <div
+              className={`${styles.heroActions} mt-9 flex flex-col gap-3 sm:flex-row`}
+            >
               <Link
                 href="/productos"
                 className="group inline-flex min-h-13 items-center justify-center gap-3 rounded-full bg-[#442a36] px-7 text-sm font-bold text-white shadow-[0_12px_30px_rgba(68,42,54,0.18)] transition hover:-translate-y-0.5 hover:bg-brand-deep focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
@@ -295,15 +356,21 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <dl className={`${styles.heroStats} mt-10 grid max-w-md grid-cols-3 border-t border-[#d8c9bf] pt-6`}>
+            <dl
+              className={`${styles.heroStats} mt-10 grid max-w-md grid-cols-3 border-t border-[#d8c9bf] pt-6`}
+            >
               <div>
-                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">450 g</dt>
+                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">
+                  450 g
+                </dt>
                 <dd className="mt-1 text-[11px] uppercase tracking-wider text-[#80716c]">
                   por vela
                 </dd>
               </div>
               <div className="border-x border-[#d8c9bf] px-5">
-                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">100 %</dt>
+                <dt className="font-heading text-2xl font-semibold text-[#3c2830]">
+                  100 %
+                </dt>
                 <dd className="mt-1 text-[11px] uppercase tracking-wider text-[#80716c]">
                   cera de soya
                 </dd>
@@ -327,15 +394,20 @@ export default async function HomePage() {
             <div
               key={benefit.label}
               className={`flex items-start gap-3 py-6 sm:gap-4 lg:py-7 ${
-                index % 2 === 0 ? 'pr-4' : 'border-l border-white/10 pl-4'
-              } ${index > 1 ? 'border-t border-white/10 lg:border-t-0' : ''} ${
-                index > 0 ? 'lg:border-l lg:border-white/10 lg:pl-7' : ''
+                index % 2 === 0 ? "pr-4" : "border-l border-white/10 pl-4"
+              } ${index > 1 ? "border-t border-white/10 lg:border-t-0" : ""} ${
+                index > 0 ? "lg:border-l lg:border-white/10 lg:pl-7" : ""
               }`}
             >
-              <benefit.icon aria-hidden className="mt-0.5 size-5 shrink-0 text-[#ef9eaa]" />
+              <benefit.icon
+                aria-hidden
+                className="mt-0.5 size-5 shrink-0 text-[#ef9eaa]"
+              />
               <div>
                 <p className="text-sm font-bold">{benefit.label}</p>
-                <p className="mt-1 text-xs leading-5 text-white/55">{benefit.detail}</p>
+                <p className="mt-1 text-xs leading-5 text-white/55">
+                  {benefit.detail}
+                </p>
               </div>
             </div>
           ))}
@@ -343,7 +415,11 @@ export default async function HomePage() {
       </section>
 
       {productCards.length > 0 && (
-        <section id="antojos" className={styles.productsSection} aria-labelledby="products-title">
+        <section
+          id="antojos"
+          className={styles.productsSection}
+          aria-labelledby="products-title"
+        >
           <div className={styles.sectionHeadingRow}>
             <h2 id="products-title" className={styles.sectionTitle}>
               Escoge tu antojo.
@@ -356,10 +432,10 @@ export default async function HomePage() {
           <ol className={styles.productGrid}>
             {productCards.map((product) => {
               const note = PRODUCT_NOTES[product.slug] ?? {
-                label: 'Artesanal',
-                note: 'Un aroma para disfrutar',
-                accent: '#fcebee',
-              }
+                label: "Artesanal",
+                note: "Un aroma para disfrutar",
+                accent: "#fcebee",
+              };
 
               return (
                 <li key={product.id}>
@@ -386,7 +462,10 @@ export default async function HomePage() {
                       </div>
                       <div className={styles.productCardFooter}>
                         <strong className={styles.productCardAmount}>
-                          {formatPrice(product.price)}
+                          <ProductPrice
+                            price={product.price}
+                            basePrice={product.basePrice}
+                          />
                         </strong>
                         <div className={styles.productCardAction}>
                           <span>Ver</span>
@@ -409,13 +488,17 @@ export default async function HomePage() {
                     </div>
                   </article>
                 </li>
-              )
+              );
             })}
           </ol>
         </section>
       )}
 
-      <section id="nosotros" className={styles.storySection} aria-labelledby="story-title">
+      <section
+        id="nosotros"
+        className={styles.storySection}
+        aria-labelledby="story-title"
+      >
         <div className={styles.storyImagePrimary}>
           <Image
             src={cloudinaryUrl(HOME_IMAGES.strawberryDetail, 1100)}
@@ -432,15 +515,22 @@ export default async function HomePage() {
           <ul>
             <li>
               <Heart aria-hidden />
-              <span><strong>Hechas a mano</strong> con amor y cera de soya.</span>
+              <span>
+                <strong>Hechas a mano</strong> con amor y cera de soya.
+              </span>
             </li>
             <li>
               <Sparkles aria-hidden />
-              <span><strong>Aromas intensos</strong> y deliciosamente inesperados.</span>
+              <span>
+                <strong>Aromas intensos</strong> y deliciosamente inesperados.
+              </span>
             </li>
             <li>
               <BadgeCheck aria-hidden />
-              <span><strong>Objetos decorativos</strong> que se roban todas las miradas.</span>
+              <span>
+                <strong>Objetos decorativos</strong> que se roban todas las
+                miradas.
+              </span>
             </li>
           </ul>
           <Link href="/productos" className={styles.smallButton}>
@@ -460,7 +550,11 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="espacios" className={styles.spacesSection} aria-labelledby="spaces-title">
+      <section
+        id="espacios"
+        className={styles.spacesSection}
+        aria-labelledby="spaces-title"
+      >
         <div className={styles.spacesCopy}>
           <h2 id="spaces-title" className={styles.sectionTitle}>
             Ponla donde todos la vean.
@@ -474,7 +568,7 @@ export default async function HomePage() {
           {SPACE_CARDS.map((card, index) => (
             <div
               key={card.label}
-              className={`${styles.spaceCard} ${index === 0 ? styles.spaceCardWide : ''}`}
+              className={`${styles.spaceCard} ${index === 0 ? styles.spaceCardWide : ""}`}
             >
               <Image
                 src={card.local ? card.src : cloudinaryUrl(card.src, 800)}
@@ -489,12 +583,15 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="regalos" className={styles.giftSection} aria-labelledby="gift-title">
+      <section
+        id="regalos"
+        className={styles.giftSection}
+        aria-labelledby="gift-title"
+      >
         <div className={styles.giftInner}>
           <div className={styles.giftIntro}>
             <h2 id="gift-title" className={styles.sectionTitle}>
-              <span>Para la persona que</span>{' '}
-              <span>ya tiene todo.</span>
+              <span>Para la persona que</span> <span>ya tiene todo.</span>
             </h2>
             <p className={styles.handNote}>Excepto esto.</p>
             <Link href="/productos" className={styles.darkButton}>
@@ -518,9 +615,30 @@ export default async function HomePage() {
           )}
           <div className={styles.giftDetails}>
             <div className={styles.giftBenefits}>
-              <div><WrappedBoxIcon /><span>Empaque<br />sorprendente</span></div>
-              <div><ReadyGiftIcon /><span>Lista para<br />regalar</span></div>
-              <div><MessageCardIcon /><span>Tarjeta con<br />mensaje</span></div>
+              <div>
+                <WrappedBoxIcon />
+                <span>
+                  Empaque
+                  <br />
+                  sorprendente
+                </span>
+              </div>
+              <div>
+                <ReadyGiftIcon />
+                <span>
+                  Lista para
+                  <br />
+                  regalar
+                </span>
+              </div>
+              <div>
+                <MessageCardIcon />
+                <span>
+                  Tarjeta con
+                  <br />
+                  mensaje
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -529,8 +647,13 @@ export default async function HomePage() {
       <section className={styles.socialSection} aria-labelledby="social-title">
         <div className={styles.socialIntro}>
           <h2 id="social-title" className={styles.sectionTitle}>
-            <span>Gente con buen gusto</span>{' '}
-            <span>y <strong className={styles.socialTitleAccent}>decisiones cuestionables.</strong></span>
+            <span>Gente con buen gusto</span>{" "}
+            <span>
+              y{" "}
+              <strong className={styles.socialTitleAccent}>
+                decisiones cuestionables.
+              </strong>
+            </span>
           </h2>
           <p>Etiqueta a @kadalivelas y apareces por aquí.</p>
           <a
@@ -562,9 +685,16 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className={styles.newsletterSection} aria-labelledby="newsletter-title">
+      <section
+        className={styles.newsletterSection}
+        aria-labelledby="newsletter-title"
+      >
         <div>
-          <h2 id="newsletter-title">Correos ricos.<br />Cero spam aburrido.</h2>
+          <h2 id="newsletter-title">
+            Correos ricos.
+            <br />
+            Cero spam aburrido.
+          </h2>
         </div>
         <div className={styles.newsletterCopy}>
           <p>Novedades, lanzamientos y cosas deliciosas.</p>
@@ -575,7 +705,10 @@ export default async function HomePage() {
       <footer className={styles.footer}>
         <div className={styles.footerBrand}>
           <Image src="/kadali-logo.svg" alt="Kadali" width={126} height={52} />
-          <p>Objetos deliciosamente inesperados para casas que se niegan a ser aburridas.</p>
+          <p>
+            Objetos deliciosamente inesperados para casas que se niegan a ser
+            aburridas.
+          </p>
           <span>© Kadali {new Date().getFullYear()}</span>
         </div>
         <div>
@@ -592,9 +725,18 @@ export default async function HomePage() {
         </div>
         <div className={styles.footerSocial}>
           <h3>Síguenos</h3>
-          <span><InstagramIcon />Instagram</span>
-          <span><TikTokIcon />TikTok</span>
-          <span><PinterestIcon />Pinterest</span>
+          <span>
+            <InstagramIcon />
+            Instagram
+          </span>
+          <span>
+            <TikTokIcon />
+            TikTok
+          </span>
+          <span>
+            <PinterestIcon />
+            Pinterest
+          </span>
         </div>
         <div className={styles.footerNote}>
           <Image
@@ -612,5 +754,5 @@ export default async function HomePage() {
         </div>
       </footer>
     </div>
-  )
+  );
 }

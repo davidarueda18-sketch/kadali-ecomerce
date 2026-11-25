@@ -1,14 +1,15 @@
-'use client'
+"use client";
 
-import Image from 'next/image'
-import Link from 'next/link'
-import { cloudinaryUrl } from '@/lib/cloudinary'
-import { formatPrice } from '@/lib/format'
-import { useCart } from '@/lib/cart'
-import { resolveProductHeroImage } from '@/lib/product-hero-images'
+import Image from "next/image";
+import Link from "next/link";
+import { cloudinaryUrl } from "@/lib/cloudinary";
+import { formatPrice } from "@/lib/format";
+import { useCart } from "@/lib/cart";
+import { resolveProductHeroImage } from "@/lib/product-hero-images";
+import CartNotice from "@/ui/product/cart-notice";
 
 export default function CarritoPage() {
-  const { items, updateQuantity, removeItem, getTotal } = useCart()
+  const { items, updateQuantity, removeItem, getTotal } = useCart();
 
   // ── Empty state ──────────────────────────────────────────────
   if (items.length === 0) {
@@ -22,7 +23,8 @@ export default function CarritoPage() {
           Tu carrito está vacío
         </h1>
         <p className="text-sm text-fg-muted mb-8 max-w-xs">
-          Aún no has añadido ningún producto. Explora nuestro catálogo y encuentra algo que te guste.
+          Aún no has añadido ningún producto. Explora nuestro catálogo y
+          encuentra algo que te guste.
         </p>
         <Link
           href="/productos"
@@ -31,14 +33,16 @@ export default function CarritoPage() {
           Explorar productos
         </Link>
       </div>
-    )
+    );
   }
 
   // ── Cart with items ──────────────────────────────────────────
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
+      <CartNotice />
       <h1 className="font-heading text-2xl font-semibold text-fg mb-8">
-        Tu carrito ({items.length} {items.length === 1 ? 'producto' : 'productos'})
+        Tu carrito ({items.length}{" "}
+        {items.length === 1 ? "producto" : "productos"})
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -52,7 +56,7 @@ export default function CarritoPage() {
                   <Image
                     src={cloudinaryUrl(
                       resolveProductHeroImage(item.slug, item.imagePublicId),
-                      200
+                      200,
                     )}
                     alt={item.name}
                     fill
@@ -80,13 +84,20 @@ export default function CarritoPage() {
                   </button>
                 </div>
 
-                <p className="text-xs text-fg-muted">{formatPrice(item.price)} / unidad</p>
+                <p className="text-xs text-fg-muted">
+                  {formatPrice(item.price)} / unidad
+                </p>
 
                 {/* Cantidad + subtotal */}
                 <div className="flex items-center justify-between mt-auto">
                   <div className="flex items-center border border-line rounded-lg overflow-hidden bg-surface">
                     <button
-                      onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
+                      onClick={() =>
+                        updateQuantity(
+                          item.productId,
+                          Math.max(1, item.quantity - 1),
+                        )
+                      }
                       className="px-2.5 py-1.5 text-fg hover:bg-bg-alt transition-colors text-sm"
                     >
                       −
@@ -95,7 +106,9 @@ export default function CarritoPage() {
                       {item.quantity}
                     </span>
                     <button
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                      onClick={() =>
+                        updateQuantity(item.productId, item.quantity + 1)
+                      }
                       className="px-2.5 py-1.5 text-fg hover:bg-bg-alt transition-colors text-sm"
                     >
                       +
@@ -120,11 +133,16 @@ export default function CarritoPage() {
 
             <div className="flex flex-col gap-2 text-sm mb-4">
               {items.map((item) => (
-                <div key={item.productId} className="flex justify-between text-fg-muted">
+                <div
+                  key={item.productId}
+                  className="flex justify-between text-fg-muted"
+                >
                   <span className="truncate pr-2">
                     {item.name} × {item.quantity}
                   </span>
-                  <span className="shrink-0">{formatPrice(item.price * item.quantity)}</span>
+                  <span className="shrink-0">
+                    {formatPrice(item.price * item.quantity)}
+                  </span>
                 </div>
               ))}
             </div>
@@ -153,5 +171,5 @@ export default function CarritoPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

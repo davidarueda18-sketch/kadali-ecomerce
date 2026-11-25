@@ -3,10 +3,8 @@ import {
   asc,
   desc,
   eq,
-  gte,
   ilike,
   inArray,
-  lte,
   isNotNull,
   or,
   sql,
@@ -22,6 +20,7 @@ import {
   productImages,
 } from "./schema";
 import type { CatalogFilters } from "../catalog/filters";
+import { withCatalogPrices } from "../pricing-store";
 
 // Categorías de imagen relevantes para la galería del PDP (excluye las de uso interno
 // del FeaturedSlider: background/no-background)
@@ -36,12 +35,14 @@ const heroCategoryIds = db
 // Productos activos que sí tienen una imagen hero principal. El INNER JOIN evita
 // enviar al front productos sin una imagen real en Cloudinary.
 export async function getActiveProducts() {
-  return db
+  const rows = await db
     .select({
       id: products.id,
       name: products.name,
       slug: products.slug,
       price: products.price,
+      categoryId: products.categoryId,
+      stock: products.stock,
       imagePublicId: productImages.cloudinaryPublicId,
     })
     .from(products)
@@ -55,17 +56,20 @@ export async function getActiveProducts() {
     )
     .where(eq(products.active, true))
     .orderBy(asc(products.id));
+  return withCatalogPrices(db, rows);
 }
 
 // Recortes transparentes sobre plato, usados en composiciones editoriales como el hero.
 // Se mantienen fuera de la galería del PDP para no mezclar fotos de producto con assets de layout.
 export async function getActiveProductPlates() {
-  return db
+  const rows = await db
     .select({
       id: products.id,
       name: products.name,
       slug: products.slug,
       price: products.price,
+      categoryId: products.categoryId,
+      stock: products.stock,
       imagePublicId: productImages.cloudinaryPublicId,
     })
     .from(products)
@@ -82,17 +86,20 @@ export async function getActiveProductPlates() {
       ),
     )
     .orderBy(asc(products.id));
+  return withCatalogPrices(db, rows);
 }
 
 // Imágenes editoriales exclusivas de la portada. Se separan de `hero` para que
 // el home no reutilice las fotografías principales del catálogo o del PDP.
 export async function getActiveProductThemes() {
-  return db
+  const rows = await db
     .select({
       id: products.id,
       name: products.name,
       slug: products.slug,
       price: products.price,
+      categoryId: products.categoryId,
+      stock: products.stock,
       imagePublicId: productImages.cloudinaryPublicId,
     })
     .from(products)
@@ -109,6 +116,7 @@ export async function getActiveProductThemes() {
       ),
     )
     .orderBy(asc(products.id));
+  return withCatalogPrices(db, rows);
 }
 
 export async function getCategories() {
@@ -167,14 +175,6 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
     );
   }
 
-  if (minPrice !== undefined) {
-    conditions.push(gte(products.price, String(minPrice)));
-  }
-
-  if (maxPrice !== undefined) {
-    conditions.push(lte(products.price, String(maxPrice)));
-  }
-
   if (q) {
     conditions.push(ilike(products.name, `%${q}%`));
   }
@@ -186,13 +186,15 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
         ? desc(products.price)
         : desc(products.createdAt);
 
-  return db
+  const rows = await db
     .select({
       id: products.id,
       name: products.name,
       slug: products.slug,
       price: products.price,
       description: products.description,
+      categoryId: products.categoryId,
+      stock: products.stock,
       imagePublicId: productImages.cloudinaryPublicId,
     })
     .from(products)
@@ -206,6 +208,16 @@ export async function getCatalogProducts(filters: CatalogFilters = {}) {
     )
     .where(and(...conditions))
     .orderBy(orderBy);
+  const priced = (await withCatalogPrices(db, rows)).filter(
+    (row) =>
+      (minPrice === undefined || Number(row.price) >= minPrice) &&
+      (maxPrice === undefined || Number(row.price) <= maxPrice),
+  );
+  if (sort === "price-asc")
+    priced.sort((a, b) => Number(a.price) - Number(b.price));
+  if (sort === "price-desc")
+    priced.sort((a, b) => Number(b.price) - Number(a.price));
+  return priced;
 }
 
 // Producto por slug con la hero y las variantes separadas para la galería del PDP.
@@ -244,7 +256,8 @@ export async function getProductBySlug(slug: string) {
     (image) => image.categorySlug === "variant",
   );
 
-  return { ...product, heroImage, variantImages };
+  const [priced] = await withCatalogPrices(db, [product]);
+  return { ...priced, heroImage, variantImages };
 }
 
 // Pedidos de un correo verificado (cubre pedidos hechos como invitado antes de registrarse,
@@ -255,10 +268,10 @@ export async function getOrdersByEmail(email: string) {
     .from(orders)
     .where(
       and(
-        sql`lower(${orders.customerEmail}) = ${email.toLowerCase()}`,
+        sql`lower(trim(${orders.customerEmail})) = ${email.trim().toLowerCase()}`,
         or(
-          and(eq(orders.status, "cancelled"), isNotNull(orders.paidAt)),
-          inArray(orders.status, ["paid", "shipped", "delivered"]),
+          isNotNull(orders.paidAt),
+          inArray(orders.paymentStatus, ["paid", "refunded", "charged_back"]),
         ),
       ),
     )

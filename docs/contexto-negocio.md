@@ -12,6 +12,8 @@ El administrador será utilizado por el propietario y su pareja. Ambos tienen pe
 
 La imagen de referencia sirve para identificar funciones. La interfaz conservará el lenguaje visual de Kadali y deberá funcionar en móvil y escritorio.
 
+La propuesta de UX/UI fue aprobada por el propietario: navegación lateral agrupada por propósito, acceso permanente a registrar una venta, resumen centrado en pendientes y cuatro indicadores principales, y desglose financiero completo en Reportes. Pedidos distingue pago y entrega mediante etiquetas independientes, con vistas rápidas y filtros secundarios. Las ventas manuales se organizan en productos, pago, cliente y entrega, con resumen de importes visible; las promociones distinguen precio por producto y porcentaje por categoría con vista previa. El stock cero es informativo porque se admite fabricación bajo pedido. Esta reorganización no amplía inventario, permisos ni posventa.
+
 ### Alcance administrativo
 
 - Resumen con filtros de fechas y comparación con el período anterior.
@@ -43,6 +45,10 @@ Registrar el origen externo y el medio de pago de forma independiente. Una venta
 
 Permitir corregir ventas externas con motivo y registro de antes y después, conservando fecha de la venta y fecha de registro. No convertir esta función en un editor libre de importes de compras ya pagadas en la web.
 
+Implementación de esta etapa: sin nombre se muestra «Cliente sin identificar», sin crear una cuenta ni correo ficticio. Para un envío sí se exige nombre del destinatario, dirección y ciudad. Una venta sin envío se registra como entregada; la modalidad no cambia una vez iniciada la preparación o entrega. Los productos archivados pueden seleccionarse para registrar ventas externas históricas sin publicarlos en la tienda; el producto interno de pruebas se excluye.
+
+En una corrección previa a la preparación solo se devuelve al stock el exceso realmente descontado; nunca se crean existencias por unidades que faltaban. Después de iniciada la preparación o entrega no hay reposición automática. El registro interno de cantidades ya procesadas evita un segundo descuento al reducir y volver a aumentar, o quitar y volver a añadir un producto. Las correcciones de precio o contacto conservan el stock y la fecha original, salvo edición explícita de la fecha.
+
 ### Promociones
 
 Administrar promociones por producto y por categoría. Mantener el precio base y calcular un precio efectivo; conservar en cada compra el precio y descuento aplicados. Cambiar una promoción no altera pedidos ya creados.
@@ -71,6 +77,8 @@ Como criterio de cálculo del plan, aplicar `total cobrado × 0,0279 + 800`, inc
 
 Guardar la comisión aplicada o estimada en cada pedido con su regla y origen. Cambiar la configuración no debe recalcular el pasado. Una comisión estimada debe identificarse como tal; no presentarla como liquidación real del proveedor. Los datos históricos sin comisión conocida deben mostrarse como desconocidos, sin asumir cero.
 
+La tarifa vigente al registrar la primera confirmación se configura en `/admin/configuracion`. El pedido conserva importe, base de cálculo, porcentaje, cargo fijo, versión de configuración y fecha de registro. Las consultas posteriores del proveedor, cambios de envío y cambios de tarifa conservan esa información. Si la comisión supera el importe de una venta pequeña, mostrar el neto negativo sin ocultarlo ni limitarlo a cero.
+
 Mostrar el neto después de comisión sin llamarlo utilidad: faltan costos de producción, empaque, impuestos y logística para calcular rentabilidad.
 
 Los indicadores deben incluir compras confirmadas de la web y ventas manuales, distinguirlas por canal y excluir intentos sin pago y el producto interno de pruebas. Un comprador no equivale a una cuenta registrada ni a cada intento de pago.
@@ -95,13 +103,22 @@ Para retracto en comercio electrónico, el artículo 47 modificado establece dev
 
 - Next.js, Drizzle y PostgreSQL/Neon; autenticación con Better Auth; pagos mediante Mercado Pago.
 - `app/admin/`: resumen acumulado, pedidos, productos e inventario y categorías. `lib/admin.ts` exige correo verificado y acceso administrativo activo en servidor.
-- `lib/db/schema.ts`: pedidos, líneas con precio histórico, `paidAt`, entrega y eventos de auditoría. `status` mezcla pago y entrega; ya existe `fulfillmentStatus`.
-- `app/actions/checkout.ts` y `ui/product/add-to-cart-button.tsx` bloquean hoy compras sin stock suficiente. El carrito conserva precios en el navegador y requiere reconciliación con el servidor para promociones.
+- `lib/db/schema.ts`: pedidos y líneas con precio histórico. La primera entrega incorpora `paymentStatus`, `paymentId`, estado y fecha de actualización del proveedor, revisión financiera, `source` y `paidAtSource`. `fulfillmentStatus` determina la entrega; `status` queda como proyección compatible con la versión anterior. La migración fue aplicada a la base configurada de la tienda el 24 de noviembre de 2026.
+- `lib/pricing.ts` y `lib/pricing-store.ts` calculan promociones y fabricación bajo pedido. El carrito reconcilia sus precios con el servidor; el checkout vuelve a verificarlos y exige aceptar el plazo de preparación cuando corresponda. Los pedidos guardan el precio original de compra y la condición de preparación.
 - `lib/mercado-pago.ts`: conciliación, descuento de stock y registro de eventos. Revisar de forma conjunta con webhook y retorno al cambiar confirmaciones.
-- `lib/email.ts`: Brevo disponible para códigos de acceso, todavía sin notificaciones de compra.
-- `lib/auth.ts` y `app/cuenta/pedidos/page.tsx`: base para recuperar compras invitadas mediante el correo. Verificar también cuentas preexistentes y variantes de mayúsculas al implementarlo.
+- `lib/commission.ts` y `lib/payment-store.ts`: cálculo monetario exacto y registro transaccional de la comisión estimada en la primera confirmación. Configuración e historial de tarifas en `/admin/configuracion`. La migración aditiva `scripts/commission-migration.sql` fue aplicada a la base configurada de la tienda el 24 de noviembre de 2026.
+- `lib/manual-sale-store.ts` y `/admin/pedidos/nuevo`: registro y corrección transaccional de ventas externas; comisión cero, identificación de formulario y control de revisión. `scripts/manual-sales-migration.sql` permite correo y dirección nulos, conserva fecha efectiva, medio de pago y registro de stock por venta; fue aplicada a la base configurada de la tienda el 24 de noviembre de 2026.
+- `lib/mail-store.ts`, `lib/order-email.ts` y `lib/email-delivery.ts`: correos de compra y seguimiento mediante cola persistente, reintentos y deduplicación. El correo de acceso existente sigue usando Brevo. La activación real requiere que Brevo permita la IP del servidor; una restricción de IP puede rechazar una clave válida.
+- `lib/auth.ts` y `app/cuenta/pedidos/page.tsx`: recuperación de compras invitadas mediante el mismo correo verificado, incluyendo cuentas preexistentes y normalización de mayúsculas y espacios. No se concede acceso por una referencia pública de pedido.
+- `/admin/clientes`, `/admin/promociones`, `/admin/correos` y `/admin/reportes`: módulos completos para revisión funcional y posterior refinamiento visual. `/admin/pedidos` incluye filtros de origen, fechas y pendientes, notas e información de preparación.
 - `app/legal/devoluciones/page.tsx`: contenido introductorio; falta una política operativa completa.
 
 ## Fuera del alcance actual
 
 Inventario avanzado, reservas, materias primas, segregación de permisos, exportaciones, cupones, acumulación de descuentos, campañas de correo, atribución publicitaria, contabilidad, facturación electrónica y cálculo de utilidad. También queda aplazada la construcción de gestión de reembolsos, devoluciones y disputas. Tampoco se asume integración con transportadoras ni envíos parciales.
+
+## Estado de construcción
+
+El propietario autorizó completar las nueve entregas en una sola ejecución antes de comenzar ajustes visuales y de UX/UI. Las entregas 4 a 9 quedaron implementadas y su migración fue aplicada conservando los datos existentes. La revisión de navegador cubre administrador, clientes, pedidos, promociones, correos, reportes, producto, carrito y checkout, sin crear compras ni ejecutar pagos reales. El despliegue de la versión publicada es independiente de esta validación local.
+
+Al cierre del 24 de noviembre de 2026 quedaron aprobadas las 57 pruebas automatizadas, lint, compilación y revisión de navegador en escritorio y móvil. La versión validada está disponible en `http://localhost:3000/admin`. Brevo continúa devolviendo HTTP 401 por restricción de la IP `38.156.230.229`, incluso después de la actualización informada por el propietario: el envío real queda pendiente de resolver esa configuración externa. No se ha comprobado entrega real de correos ni se han enviado mensajes de prueba a clientes.

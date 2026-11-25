@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Image from 'next/image'
-import Link from 'next/link'
-import { Check, ShoppingBag } from 'lucide-react'
-import { cloudinaryUrl } from '@/lib/cloudinary'
-import { formatPrice } from '@/lib/format'
-import { useCart } from '@/lib/cart'
-import IconButton from '@/ui/common/icon-button'
-import RatingBadge from '@/ui/product/rating-badge'
-import FavoriteButton from '@/ui/product/favorite-button'
-import type { SliderProduct } from './featured-slider'
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Check, ShoppingBag } from "lucide-react";
+import { cloudinaryUrl } from "@/lib/cloudinary";
+import { useCart } from "@/lib/cart";
+import IconButton from "@/ui/common/icon-button";
+import RatingBadge from "@/ui/product/rating-badge";
+import FavoriteButton from "@/ui/product/favorite-button";
+import type { SliderProduct } from "./featured-slider";
+import ProductPrice from "@/ui/product/product-price";
 
-type Props = { product: SliderProduct }
+type Props = { product: SliderProduct };
 
 export default function FeaturedProductCard({ product }: Props) {
-  const { addItem } = useCart()
-  const [added, setAdded] = useState(false)
+  const { addItem } = useCart();
+  const [added, setAdded] = useState(false);
 
   function handleAdd() {
     addItem(
@@ -27,10 +27,10 @@ export default function FeaturedProductCard({ product }: Props) {
         price: Number(product.price),
         imagePublicId: product.imagePublicId,
       },
-      1
-    )
-    setAdded(true)
-    setTimeout(() => setAdded(false), 1500)
+      1,
+    );
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
   }
 
   return (
@@ -41,7 +41,7 @@ export default function FeaturedProductCard({ product }: Props) {
 
       <Link href={`/productos/${product.slug}`} className="block">
         <p className="font-heading text-2xl font-semibold text-brand-deep md:text-3xl">
-          {formatPrice(product.price)}
+          <ProductPrice price={product.price} basePrice={product.basePrice} />
         </p>
         <p className="text-sm text-fg-muted">{product.name}</p>
         <div className="relative mt-4 h-48 md:h-56 lg:h-64">
@@ -76,5 +76,5 @@ export default function FeaturedProductCard({ product }: Props) {
         />
       </div>
     </div>
-  )
+  );
 }

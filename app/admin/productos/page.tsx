@@ -33,7 +33,7 @@ export default async function ProductsPage({
   return (
     <>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="font-heading text-3xl">Productos e inventario</h1>
+        <h1 className="font-heading text-3xl">Productos</h1>
         <Link
           href="/admin/productos/nuevo"
           className="rounded-xl bg-brand px-5 py-3 font-bold text-white"
@@ -76,7 +76,7 @@ export default async function ProductsPage({
                 </p>
               </div>
               <span
-                className={`rounded-full px-3 py-1 text-sm font-bold ${product.stock <= 5 ? "bg-amber-50 text-amber-800" : "bg-green-50 text-green-800"}`}
+                className={`rounded-full px-3 py-1 text-sm font-bold ${product.stock <= 5 ? "bg-stone-100 text-stone-700" : "bg-green-50 text-green-800"}`}
               >
                 {product.stock} disponibles
               </span>

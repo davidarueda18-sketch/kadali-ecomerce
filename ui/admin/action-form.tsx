@@ -1,5 +1,5 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 export type ActionState = { error?: string; success?: string };
 export default function ActionForm({
   action,
@@ -10,9 +10,23 @@ export default function ActionForm({
   children: React.ReactNode;
   label?: string;
 }) {
-  const [state, formAction, pending] = useActionState(action, {});
+  const lastResult = useRef<ActionState>({});
+  const [state, formAction, pending] = useActionState(
+    async (previous: ActionState, data: FormData) => {
+      const result = await action(previous, data);
+      lastResult.current = result;
+      return result;
+    },
+    {},
+  );
   return (
-    <form action={formAction} className="space-y-4">
+    <form
+      action={formAction}
+      onReset={(event) => {
+        if (lastResult.current.error) event.preventDefault();
+      }}
+      className="space-y-4"
+    >
       {children}
       <div aria-live="polite">
         {state.error && (

@@ -2,7 +2,7 @@ import { InvalidWebhookSignatureError, SignatureFailureReason, WebhookSignatureV
 
 type Dependencies = {
   getSecret: () => string | undefined
-  reconcile: (paymentId: string) => Promise<{ orderStatus: string }>
+  reconcile: (paymentId: string) => Promise<{ orderStatus: string; paymentStatus?: string }>
   log: (event: string, details: Record<string, unknown>) => void
 }
 
@@ -55,8 +55,8 @@ export function createMercadoPagoWebhook({ getSecret, reconcile, log }: Dependen
     }
     try {
       const result = await reconcile(dataId)
-      log('Mercado Pago webhook reconciled', { requestId, paymentId: dataId, orderStatus: result.orderStatus })
-      return Response.json({ received: true, orderStatus: result.orderStatus })
+      log('Mercado Pago webhook reconciled', { requestId, paymentId: dataId, paymentStatus: result.paymentStatus, orderStatus: result.orderStatus })
+      return Response.json({ received: true, paymentStatus: result.paymentStatus, orderStatus: result.orderStatus })
     } catch (error) {
       const failure = error as { code?: string; cause?: { code?: string }; status?: number }
       log('Mercado Pago webhook reconciliation failed', {

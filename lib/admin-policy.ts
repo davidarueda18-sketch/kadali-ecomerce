@@ -15,11 +15,6 @@ export async function resolveAdminPermission(
   );
 }
 
-export const CONFIRMED_ORDER_STATUSES = [
-  "paid",
-  "shipped",
-  "delivered",
-] as const;
 export const SHIPPING_LABELS: Record<string, string> = {
   unfulfilled: "Por preparar",
   preparing: "En preparación",
@@ -32,15 +27,10 @@ export function canChangeShipment(
   previous: string,
   next: string,
 ) {
-  if (
-    !CONFIRMED_ORDER_STATUSES.includes(
-      paymentStatus as (typeof CONFIRMED_ORDER_STATUSES)[number],
-    )
-  )
-    return false;
+  if (paymentStatus !== "paid") return false;
   const steps = Object.keys(SHIPPING_LABELS);
   return (
-    steps.includes(next) &&
+    steps.includes(previous) && steps.includes(next) &&
     (next === previous || steps.indexOf(next) === steps.indexOf(previous) + 1)
   );
 }

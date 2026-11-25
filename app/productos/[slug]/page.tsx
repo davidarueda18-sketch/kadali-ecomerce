@@ -1,36 +1,41 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { getProductBySlug } from '@/lib/db/queries'
-import { formatPrice } from '@/lib/format'
-import AddToCartButton from '@/ui/product/add-to-cart-button'
-import ProductGallery from '@/ui/product/product-gallery'
-import { PAYMENT_TEST_PRODUCT_SLUG } from '@/lib/payment-config'
-import FavoriteButton from '@/ui/product/favorite-button'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { getProductBySlug } from "@/lib/db/queries";
+import { formatPrice } from "@/lib/format";
+import AddToCartButton from "@/ui/product/add-to-cart-button";
+import ProductGallery from "@/ui/product/product-gallery";
+import { PAYMENT_TEST_PRODUCT_SLUG } from "@/lib/payment-config";
+import FavoriteButton from "@/ui/product/favorite-button";
+import ProductPrice from "@/ui/product/product-price";
 
 type Props = {
-  params: Promise<{ slug: string }>
-}
+  params: Promise<{ slug: string }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params
-  const producto = await getProductBySlug(slug)
-  if (!producto) return { title: 'Producto no encontrado | Kadali' }
+  const { slug } = await params;
+  const producto = await getProductBySlug(slug);
+  if (!producto) return { title: "Producto no encontrado | Kadali" };
   return {
     title: `${producto.name} | Kadali`,
     description: producto.description ?? `Conoce ${producto.name} en Kadali.`,
-  }
+  };
 }
 
 export default async function ProductoDetallePage({ params }: Props) {
-  const { slug } = await params
-  const producto = await getProductBySlug(slug)
+  const { slug } = await params;
+  const producto = await getProductBySlug(slug);
 
-  if (!producto) notFound()
+  if (
+    !producto ||
+    (!producto.active && producto.slug !== PAYMENT_TEST_PRODUCT_SLUG)
+  )
+    notFound();
 
-  const imagenPrincipal = producto.heroImage?.cloudinaryPublicId ?? null
-  const stockBajo = producto.stock > 0 && producto.stock <= 5
-  const isPaymentTestProduct = producto.slug === PAYMENT_TEST_PRODUCT_SLUG
+  const imagenPrincipal = producto.heroImage?.cloudinaryPublicId ?? null;
+  const stockBajo = producto.stock > 0 && producto.stock <= 5;
+  const isPaymentTestProduct = producto.slug === PAYMENT_TEST_PRODUCT_SLUG;
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -67,14 +72,18 @@ export default async function ProductoDetallePage({ params }: Props) {
 
           {/* Precio */}
           <p className="text-2xl font-semibold text-fg">
-            {formatPrice(producto.price)}
+            <ProductPrice
+              price={producto.price}
+              basePrice={producto.basePrice}
+            />
           </p>
 
           {isPaymentTestProduct && (
             <div className="rounded-2xl border border-sienna/30 bg-sienna/10 p-4 text-sm leading-relaxed text-fg">
-              Producto oculto para validación interna. El checkout cobrará{' '}
-              <strong>{formatPrice(producto.price)}</strong> con las credenciales activas y la pantalla
-              final indicará si fue una transacción real o de prueba. Págalo siempre por separado.
+              Producto oculto para validación interna. El checkout cobrará{" "}
+              <strong>{formatPrice(producto.price)}</strong> con las
+              credenciales activas y la pantalla final indicará si fue una
+              transacción real o de prueba. Págalo siempre por separado.
             </div>
           )}
 
@@ -83,7 +92,9 @@ export default async function ProductoDetallePage({ params }: Props) {
 
           {/* Descripción */}
           {producto.description && (
-            <p className="text-sm text-fg-muted leading-relaxed">{producto.description}</p>
+            <p className="text-sm text-fg-muted leading-relaxed">
+              {producto.description}
+            </p>
           )}
 
           {!isPaymentTestProduct && (
@@ -105,7 +116,7 @@ export default async function ProductoDetallePage({ params }: Props) {
             {producto.stock < 1 ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-fg-muted bg-bg-alt rounded-full px-3 py-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-fg-muted" />
-                Agotado
+                Disponible bajo pedido · 2–5 días calendario de preparación
               </span>
             ) : stockBajo ? (
               <span className="inline-flex items-center gap-1.5 text-xs font-medium text-fg bg-bg-alt rounded-full px-3 py-1">
@@ -133,7 +144,7 @@ export default async function ProductoDetallePage({ params }: Props) {
               imagePublicId: imagenPrincipal,
             }}
             stock={producto.stock}
-            buyNowDestination={isPaymentTestProduct ? '/checkout' : '/carrito'}
+            buyNowDestination={isPaymentTestProduct ? "/checkout" : "/carrito"}
           />
 
           {/* Link de vuelta */}
@@ -146,5 +157,5 @@ export default async function ProductoDetallePage({ params }: Props) {
         </div>
       </div>
     </div>
-  )
+  );
 }
